@@ -3,7 +3,9 @@
 
 python export2onnx.py
 
-python run_onnx.py
+python run_onnx_single_out.py
 
+
+python run_onnx_4_outs.py
 
 
