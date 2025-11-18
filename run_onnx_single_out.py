@@ -37,75 +37,11 @@ Run ONNX model on all images in a folder.
 
 import argparse
 import os, sys
-import shutil
-
 import cv2
 import numpy as np
 import onnxruntime as ort
 
 import utils
-
-def preprocess_image(img_bgr: np.ndarray) -> np.ndarray:
-    """
-    Letterbox to (INPUT_H, INPUT_W) while preserving aspect ratio.
-
-    Definition of letterboxing used here:
-      - r = min(target_w / w0, target_h / h0)
-      - new_w = round(w0 * r), new_h = round(h0 * r)
-      - dw = target_w - new_w, dh = target_h - new_h
-      - pad_left   = dw // 2
-      - pad_right  = dw - pad_left
-      - pad_top    = dh // 2
-      - pad_bottom = dh - pad_top
-      - pad with black borders
-
-    Then:
-      - BGR -> RGB
-      - normalize to [0,1]
-      - HWC -> CHW
-      - add batch dim -> (1,3,H,W)
-    """
-    h0, w0 = img_bgr.shape[:2]  # original height, width
-    target_w, target_h = utils.INPUT_W, utils.INPUT_H
-
-    # Scale to fit in target size while preserving aspect ratio
-    r = min(target_w / w0, target_h / h0)
-    new_w = int(round(w0 * r))
-    new_h = int(round(h0 * r))
-
-    # Resize with aspect ratio preserved
-    if (w0, h0) != (new_w, new_h):
-        img_resized = cv2.resize(img_bgr, (new_w, new_h), interpolation=cv2.INTER_LINEAR)
-    else:
-        img_resized = img_bgr.copy()
-
-    # Compute padding
-    dw = target_w - new_w  # total padding width
-    dh = target_h - new_h  # total padding height
-
-    pad_left   = dw // 2
-    pad_right  = dw - pad_left
-    pad_top    = dh // 2
-    pad_bottom = dh - pad_top
-
-    # Pad with black borders (0,0,0)
-    img_padded = cv2.copyMakeBorder(
-        img_resized,
-        pad_top,
-        pad_bottom,
-        pad_left,
-        pad_right,
-        borderType=cv2.BORDER_CONSTANT,
-        value=(0, 0, 0),
-    )
-
-    # BGR -> RGB, normalize, HWC -> CHW, add batch dim
-    img_rgb = cv2.cvtColor(img_padded, cv2.COLOR_BGR2RGB)
-    img = img_rgb.astype(np.float32) / 255.0
-    img = np.transpose(img, (2, 0, 1))  # HWC -> CHW
-    img = np.expand_dims(img, axis=0)   # (1,3,H,W)
-
-    return img
 
 
 
@@ -214,119 +150,10 @@ def postprocess(outputs, conf_thres: float, iou_thres: float):
     return boxes_xyxy[keep], scores[keep], class_ids[keep]
 
 
-def scale_boxes_to_original(boxes_640: np.ndarray, orig_w: int, orig_h: int) -> np.ndarray:
-    """
-    Scale boxes from letterboxed (INPUT_H, INPUT_W) space back to original image size.
-
-    Must match the same letterboxing definition used in preprocess_image():
-      - r = min(target_w / orig_w, target_h / orig_h)
-      - new_w = round(orig_w * r), new_h = round(orig_h * r)
-      - dw = target_w - new_w, dh = target_h - new_h
-      - pad_left = dw / 2, pad_top = dh / 2
-    """
-    if boxes_640.size == 0:
-        return boxes_640
-
-    target_w, target_h = utils.INPUT_W, utils.INPUT_H
-
-    # Recompute the same scale & padding used during preprocessing
-    r = min(target_w / float(orig_w), target_h / float(orig_h))
-    new_w = float(round(orig_w * r))
-    new_h = float(round(orig_h * r))
-
-    dw = target_w - new_w
-    dh = target_h - new_h
-
-    pad_left = dw / 2.0
-    pad_top  = dh / 2.0
-
-    boxes_orig = boxes_640.copy().astype(np.float32)
-
-    # Undo padding, then undo scaling
-    boxes_orig[:, [0, 2]] = (boxes_orig[:, [0, 2]] - pad_left) / r
-    boxes_orig[:, [1, 3]] = (boxes_orig[:, [1, 3]] - pad_top)  / r
-
-    # Clip to original image bounds
-    boxes_orig[:, 0] = np.clip(boxes_orig[:, 0], 0, orig_w - 1)
-    boxes_orig[:, 1] = np.clip(boxes_orig[:, 1], 0, orig_h - 1)
-    boxes_orig[:, 2] = np.clip(boxes_orig[:, 2], 0, orig_w - 1)
-    boxes_orig[:, 3] = np.clip(boxes_orig[:, 3], 0, orig_h - 1)
-
-    return boxes_orig
-
-
-
-def draw_detections(img_bgr, boxes, scores, class_ids, class_names=None):
-    if boxes.size == 0:
-        return img_bgr
-
-    if class_names is None:
-        class_names = [str(i) for i in range(int(class_ids.max()) + 1)]
-
-    for box, score, cls_id in zip(boxes, scores, class_ids):
-        x1, y1, x2, y2 = box.astype(int)
-        cls_id = int(cls_id)
-        label = class_names[cls_id] if 0 <= cls_id < len(class_names) else f"class_{cls_id}"
-        caption = f"{label} {score:.2f}"
-
-        cv2.rectangle(img_bgr, (x1, y1), (x2, y2), (0, 255, 0), 2)
-
-        (tw, th), baseline = cv2.getTextSize(
-            caption, cv2.FONT_HERSHEY_SIMPLEX, 0.5, 1
-        )
-        cv2.rectangle(
-            img_bgr,
-            (x1, y1 - th - baseline),
-            (x1 + tw, y1),
-            (0, 255, 0),
-            thickness=-1,
-        )
-        cv2.putText(
-            img_bgr,
-            caption,
-            (x1, y1 - baseline),
-            cv2.FONT_HERSHEY_SIMPLEX,
-            0.5,
-            (0, 0, 0),
-            1,
-            cv2.LINE_AA,
-        )
-
-    return img_bgr
-
-
-def get_image_paths(folder: str):
-    """
-    Return a list of full paths to image files in 'folder'.
-    Image files are detected by extension.
-    """
-    valid_exts = (".jpg", ".jpeg", ".png", ".bmp", ".tif", ".tiff")
-    if not os.path.isdir(folder):
-        raise NotADirectoryError(f"Input directory does not exist or is not a directory: {folder}")
-
-    files = sorted(os.listdir(folder))
-    image_paths = [
-        os.path.join(folder, f)
-        for f in files
-        if os.path.splitext(f.lower())[1] in valid_exts
-    ]
-    return image_paths
-
-
-def prepare_output_dir(output_dir: str):
-    """
-    If output_dir exists, delete it and its contents, then recreate it.
-    If it doesn't exist, create it.
-    """
-    if os.path.exists(output_dir):
-        shutil.rmtree(output_dir)
-    os.makedirs(output_dir, exist_ok=True)
-
-
 def implement(args) -> None:
 
     # Prepare output folder
-    prepare_output_dir(args.output_dir)
+    utils.prepare_output_dir(args.output_dir)
 
     # Load ONNX model
     if not os.path.isfile(args.model):
@@ -336,7 +163,7 @@ def implement(args) -> None:
     input_name = session.get_inputs()[0].name
 
     # Get all image paths from input folder
-    image_paths = get_image_paths(args.input_dir)
+    image_paths = utils.get_image_paths(args.input_dir)
     if len(image_paths) == 0:
         print(f"No image files found in folder: {args.input_dir}")
         return
@@ -357,7 +184,7 @@ def implement(args) -> None:
         orig_h, orig_w = img_bgr.shape[:2]
 
         # Preprocess (resize → tensor)
-        img_input = preprocess_image(img_bgr)
+        img_input = utils.preprocess_image(img_bgr)
 
         # Inference
         outputs = session.run(None, {input_name: img_input})
@@ -375,8 +202,8 @@ def implement(args) -> None:
         else:
             print(f"  Detections: {boxes_640.shape[0]}")
             # Scale boxes back to original image size
-            boxes_orig = scale_boxes_to_original(boxes_640, orig_w, orig_h)
-            annotated = draw_detections(img_bgr.copy(), boxes_orig, scores, class_ids, utils.COCO_CLASSES)
+            boxes_orig = utils.scale_boxes_to_original(boxes_640, orig_w, orig_h)
+            annotated = utils.draw_detections(img_bgr.copy(), boxes_orig, scores, class_ids, utils.COCO_CLASSES)
 
         out_path = os.path.join(args.output_dir, filename)
         ok = cv2.imwrite(out_path, annotated)

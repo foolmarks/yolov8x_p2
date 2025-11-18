@@ -93,7 +93,7 @@ python export2onnx.py
 ONNXRuntime is included in the SDK docker, so we can run the floating-point model. This is useful to provide a baseline for comparing to the post-quantization and post-compile models. The run_onnx.py script includes pre- and postprocessing.
 
 > Note: The same pre-processing and post-processing is used at every step and will generally be similar to the pre/post-processing used during model training.
-> The pre-processing used in this Yolov8x_p2 example is conversion from BGR to RGB format, resizing and padding to match the input dimensions while maintaing the correct aspect ratio, there is no normalization, means subtraction, etc.
+> The pre-processing used in this Yolov8x_p2 example is resizing and padding to the model input size (usually 640,64) conversion from BGR to RGB format, pixel value normalization to the range 0->1s
 
 
 ```shell
@@ -153,10 +153,31 @@ Processing image: 000000581062.jpg
   Annotated image written to: ./build/onnx_pred/000000581062.jpg
 ```
 
-Images annotated with bounding boxes are writted itno the ./build/onnx_pred folder.
+Images annotated with bounding boxes are written into the ./build/onnx_pred folder.
 
 
-<img src="./readme_images/onnx_test_000000574520.jpg" alt="" style="height: 500px; width:500px;"/>
+<img src="./readme_images/onnx_1_000000022589.jpg" alt="" style="height: 400px; width:500px;"/>
+
+
+
+## Graph Surgery ##
+
+```shell
+python rewrite_yolov8mp2_4_outs.py
+```
+
+## Execute The Modified Floating-Point ONNX model ##
+
+```shell
+python run_onnx_4_outs.py
+```
+
+
+Images annotated with bounding boxes are written into the ./build/onnx_4_pred folder.
+
+
+<img src="./readme_images/onnx_4_000000022589.jpg" alt="" style="height: 400px; width:500px;"/>
+
 
 
 
