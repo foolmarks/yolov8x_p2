@@ -88,50 +88,69 @@ python export2onnx.py
 
 
 
-## Execute Floating-Point ONNX model ##
+## Execute The Original Floating-Point ONNX model ##
 
 ONNXRuntime is included in the SDK docker, so we can run the floating-point model. This is useful to provide a baseline for comparing to the post-quantization and post-compile models. The run_onnx.py script includes pre- and postprocessing.
 
 > Note: The same pre-processing and post-processing is used at every step and will generally be similar to the pre/post-processing used during model training.
-> The pre-processing used in this YoloX example is just conversion from BGR to RGB format, resizing and padding to match the input dimensions while maintaing the correct aspect ratio, there is no normalization, means subtraction, etc.
+> The pre-processing used in this Yolov8x_p2 example is conversion from BGR to RGB format, resizing and padding to match the input dimensions while maintaing the correct aspect ratio, there is no normalization, means subtraction, etc.
 
 
 ```shell
-python run_onnx.py
+python run_onnx_single_out.py 
 ```
 
 
 The expected console output is like this:
 
 ```shell
-user@c88084ef7e7b:/home/docker/sima-cli$ python run_onnx.py 
+user@7df5555533b9:/home/docker/sima-cli$ python run_onnx_single_out.py 
 
 --------------------------------------------------
 3.10.12 (main, Aug  6 2025, 18:09:36) [GCC 11.4.0]
 --------------------------------------------------
-Using 10 out of 10  test images
-Removing existing directory: /home/docker/sima-cli/build/onnx_pred
-Annotated images will be written to /home/docker/sima-cli/build/onnx_pred
-Processing image: /home/docker/sima-cli/test_images/000000006894.jpg
-Wrote output image to /home/docker/sima-cli/build/onnx_pred/test_000000006894.jpg
-Processing image: /home/docker/sima-cli/test_images/000000019221.jpg
-Wrote output image to /home/docker/sima-cli/build/onnx_pred/test_000000019221.jpg
-Processing image: /home/docker/sima-cli/test_images/000000022589.jpg
-Wrote output image to /home/docker/sima-cli/build/onnx_pred/test_000000022589.jpg
-Processing image: /home/docker/sima-cli/test_images/000000032941.jpg
-Wrote output image to /home/docker/sima-cli/build/onnx_pred/test_000000032941.jpg
-Processing image: /home/docker/sima-cli/test_images/000000048504.jpg
-Wrote output image to /home/docker/sima-cli/build/onnx_pred/test_000000048504.jpg
-Processing image: /home/docker/sima-cli/test_images/000000572408.jpg
-Wrote output image to /home/docker/sima-cli/build/onnx_pred/test_000000572408.jpg
-Processing image: /home/docker/sima-cli/test_images/000000573626.jpg
-Wrote output image to /home/docker/sima-cli/build/onnx_pred/test_000000573626.jpg
-Processing image: /home/docker/sima-cli/test_images/000000574520.jpg
-Wrote output image to /home/docker/sima-cli/build/onnx_pred/test_000000574520.jpg
-Processing image: /home/docker/sima-cli/test_images/000000577735.jpg
-Wrote output image to /home/docker/sima-cli/build/onnx_pred/test_000000577735.jpg
-Processing image: /home/docker/sima-cli/test_images/000000581062.jpg
-Wrote output image to /home/docker/sima-cli/build/onnx_pred/test_000000581062.jpg
+Found 10 image(s) in './test_images'
+Output images will be written to './build/onnx_pred'
+
+Processing image: 000000006894.jpg
+  Detections: 2
+  Annotated image written to: ./build/onnx_pred/000000006894.jpg
+
+Processing image: 000000019221.jpg
+  Detections: 2
+  Annotated image written to: ./build/onnx_pred/000000019221.jpg
+
+Processing image: 000000022589.jpg
+  Detections: 2
+  Annotated image written to: ./build/onnx_pred/000000022589.jpg
+
+Processing image: 000000032941.jpg
+  Detections: 12
+  Annotated image written to: ./build/onnx_pred/000000032941.jpg
+
+Processing image: 000000048504.jpg
+  Detections: 4
+  Annotated image written to: ./build/onnx_pred/000000048504.jpg
+
+Processing image: 000000572408.jpg
+  Detections: 4
+  Annotated image written to: ./build/onnx_pred/000000572408.jpg
+
+Processing image: 000000573626.jpg
+  Detections: 1
+  Annotated image written to: ./build/onnx_pred/000000573626.jpg
+
+Processing image: 000000574520.jpg
+  Detections: 2
+  Annotated image written to: ./build/onnx_pred/000000574520.jpg
+
+Processing image: 000000577735.jpg
+  Detections: 2
+  Annotated image written to: ./build/onnx_pred/000000577735.jpg
+
+Processing image: 000000581062.jpg
+  Detections: 2
+  Annotated image written to: ./build/onnx_pred/000000581062.jpg
 ```
 
 Images annotated with bounding boxes are writted itno the ./build/onnx_pred folder.
