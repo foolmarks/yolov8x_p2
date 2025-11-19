@@ -1,5 +1,7 @@
 # YoloV8x_p2 Object Detection #
 
+# WORK IN PROGRESS! #
+
 This tutorial demonstrates the following steps:
 
   * Running a trained FP32 ONNX model to provide baseline results.
@@ -111,43 +113,33 @@ user@7df5555533b9:/home/docker/sima-cli$ python run_onnx_single_out.py
 --------------------------------------------------
 Found 10 image(s) in './test_images'
 Output images will be written to './build/onnx_pred'
-
 Processing image: 000000006894.jpg
   Detections: 2
   Annotated image written to: ./build/onnx_pred/000000006894.jpg
-
 Processing image: 000000019221.jpg
   Detections: 2
   Annotated image written to: ./build/onnx_pred/000000019221.jpg
-
 Processing image: 000000022589.jpg
   Detections: 2
   Annotated image written to: ./build/onnx_pred/000000022589.jpg
-
 Processing image: 000000032941.jpg
   Detections: 12
   Annotated image written to: ./build/onnx_pred/000000032941.jpg
-
 Processing image: 000000048504.jpg
   Detections: 4
   Annotated image written to: ./build/onnx_pred/000000048504.jpg
-
 Processing image: 000000572408.jpg
   Detections: 4
   Annotated image written to: ./build/onnx_pred/000000572408.jpg
-
 Processing image: 000000573626.jpg
   Detections: 1
   Annotated image written to: ./build/onnx_pred/000000573626.jpg
-
 Processing image: 000000574520.jpg
   Detections: 2
   Annotated image written to: ./build/onnx_pred/000000574520.jpg
-
 Processing image: 000000577735.jpg
   Detections: 2
   Annotated image written to: ./build/onnx_pred/000000577735.jpg
-
 Processing image: 000000581062.jpg
   Detections: 2
   Annotated image written to: ./build/onnx_pred/000000581062.jpg
@@ -203,46 +195,61 @@ The images are written into build/quant_pred folder:
 The expected console output is like this:
 
 ```shell
+mark@7df5555533b9:/home/docker/sima-cli$ python run_modelsdk.py -e
+
 --------------------------------------------------
 Model SDK version 1.7.0
 3.10.12 (main, Aug  6 2025, 18:09:36) [GCC 11.4.0]
 --------------------------------------------------
-Removing existing directory: /home/docker/sima-cli/build/yolox_s_opt_no_reshapes
-Results will be written to /home/docker/sima-cli/build/yolox_s_opt_no_reshapes
+Results will be written to /home/docker/sima-cli/build/yolov8x-p2_opt_4o
 --------------------------------------------------
-Model Inputs
+Model Inputs:
 images: (1, 3, 640, 640)
 --------------------------------------------------
-Loaded model from yolox_s_opt_no_reshapes.onnx
-Quantizing with 50 calibration samples
-Calibration Progress: |██████████████████████████████| 100.0% 50|50 Complete.  50/50
+2025-11-19 03:04:09,940 - afe.apis.loaded_net - INFO - Loading ['yolov8x-p2_opt_4o.onnx'] in onnx format
+Loaded model from yolov8x-p2_opt_4o.onnx
+Quantizing with 1 calibration samples
+2025-11-19 03:04:21,165 - afe.apis.loaded_net - INFO - Quantize loaded net, layout = NCHW, arm_only = False
+2025-11-19 03:04:21,165 - afe.apis.loaded_net - INFO - Calibration method = min_max
+2025-11-19 03:05:59,219 - afe.ir.transform.calibration_transforms - INFO - Running Calibration ...
+Calibration Progress: |██████████████████████████████| 100.0% 1|1 Complete.  1/1
 Running Calibration ...DONE
 Running quantization ...DONE
-Quantized model saved to /home/docker/sima-cli/build/yolox_s_opt_no_reshapes/yolox_s_opt_no_reshapes.sima.json
-Removing existing directory: /home/docker/sima-cli/build/quant_pred
+Quantized model saved to /home/docker/sima-cli/build/yolov8x-p2_opt_4o/yolov8x-p2_opt_4o.sima.json
 Annotated images will be written to /home/docker/sima-cli/build/quant_pred
-Processing image: /home/docker/sima-cli/test_images/000000006894.jpg
-Wrote output image to /home/docker/sima-cli/build/quant_pred/test_000000006894.jpg
-Processing image: /home/docker/sima-cli/test_images/000000019221.jpg
-Wrote output image to /home/docker/sima-cli/build/quant_pred/test_000000019221.jpg
-Processing image: /home/docker/sima-cli/test_images/000000022589.jpg
-Wrote output image to /home/docker/sima-cli/build/quant_pred/test_000000022589.jpg
-Processing image: /home/docker/sima-cli/test_images/000000032941.jpg
-Wrote output image to /home/docker/sima-cli/build/quant_pred/test_000000032941.jpg
-Processing image: /home/docker/sima-cli/test_images/000000048504.jpg
-Wrote output image to /home/docker/sima-cli/build/quant_pred/test_000000048504.jpg
-Processing image: /home/docker/sima-cli/test_images/000000572408.jpg
-Wrote output image to /home/docker/sima-cli/build/quant_pred/test_000000572408.jpg
-Processing image: /home/docker/sima-cli/test_images/000000573626.jpg
-Wrote output image to /home/docker/sima-cli/build/quant_pred/test_000000573626.jpg
-Processing image: /home/docker/sima-cli/test_images/000000574520.jpg
-Wrote output image to /home/docker/sima-cli/build/quant_pred/test_000000574520.jpg
-Processing image: /home/docker/sima-cli/test_images/000000577735.jpg
-Wrote output image to /home/docker/sima-cli/build/quant_pred/test_000000577735.jpg
-Processing image: /home/docker/sima-cli/test_images/000000581062.jpg
-Wrote output image to /home/docker/sima-cli/build/quant_pred/test_000000581062.jpg
+Using 10 out of 10  test images
+Processing image: 000000006894.jpg
+  Detections: 2
+  Annotated image written to: /home/docker/sima-cli/build/quant_pred/000000006894.jpg
+Processing image: 000000019221.jpg
+  Detections: 2
+  Annotated image written to: /home/docker/sima-cli/build/quant_pred/000000019221.jpg
+Processing image: 000000022589.jpg
+  Detections: 2
+  Annotated image written to: /home/docker/sima-cli/build/quant_pred/000000022589.jpg
+Processing image: 000000032941.jpg
+  Detections: 12
+  Annotated image written to: /home/docker/sima-cli/build/quant_pred/000000032941.jpg
+Processing image: 000000048504.jpg
+  Detections: 4
+  Annotated image written to: /home/docker/sima-cli/build/quant_pred/000000048504.jpg
+Processing image: 000000572408.jpg
+  Detections: 4
+  Annotated image written to: /home/docker/sima-cli/build/quant_pred/000000572408.jpg
+Processing image: 000000573626.jpg
+  Detections: 1
+  Annotated image written to: /home/docker/sima-cli/build/quant_pred/000000573626.jpg
+Processing image: 000000574520.jpg
+  Detections: 2
+  Annotated image written to: /home/docker/sima-cli/build/quant_pred/000000574520.jpg
+Processing image: 000000577735.jpg
+  Detections: 2
+  Annotated image written to: /home/docker/sima-cli/build/quant_pred/000000577735.jpg
+Processing image: 000000581062.jpg
+  Detections: 2
+  Annotated image written to: /home/docker/sima-cli/build/quant_pred/000000581062.jpg
 Compiling with batch size set to 1
-Wrote compiled model to /home/docker/sima-cli/build/yolox_s_opt_no_reshapes/yolox_s_opt_no_reshapes_mpk.tar.gz
+Wrote compiled model to /home/docker/sima-cli/build/yolov8x-p2_opt_4o/yolov8x-p2_opt_4o_mpk.tar.gz
 ```
 
 
@@ -250,11 +257,10 @@ Wrote compiled model to /home/docker/sima-cli/build/yolox_s_opt_no_reshapes/yolo
 The evaluation of the quantized model generates images annotated with bounding boxes and are written into the ./build/quant_pred folder.
 
 
-<img src="./readme_images/quant_test_000000574520.jpg" alt="" style="height: 500px; width:500px;"/>
+<img src="./readme_images/quant_pred_000000022589.jpg" alt="" style="height: 400px; width:500px;"/>
 
 
 
-### Code Walkthrough for run_modelsdk.py ###
 
 
 ## Test model on hardware ##
@@ -278,11 +284,20 @@ user@c88084ef7e7b:/home/docker/sima-cli$ python run_accelmode.py
 Model SDK version 1.7.0
 3.10.12 (main, Aug  6 2025, 18:09:36) [GCC 11.4.0]
 --------------------------------------------------
-Removing existing directory: /home/docker/sima-cli/build/accel_pred
 Annotated images will be written to /home/docker/sima-cli/build/accel_pred
-Loading yolox_s_opt_no_reshapes quantized model from build/yolox_s_opt_no_reshapes
+Loading yolov8x-p2_opt_4o quantized model from build/yolov8x-p2_opt_4o
 Using 10 out of 10  test images
-Compiling model yolox_s_opt_no_reshapes to .elf file
+Processing image: 000000006894.jpg
+Processing image: 000000019221.jpg
+Processing image: 000000022589.jpg
+Processing image: 000000032941.jpg
+Processing image: 000000048504.jpg
+Processing image: 000000572408.jpg
+Processing image: 000000573626.jpg
+Processing image: 000000574520.jpg
+Processing image: 000000577735.jpg
+Processing image: 000000581062.jpg
+Compiling model yolov8x-p2_opt_4o to .elf file
 Creating the Forwarding from host
 Copying the model files to DevKit
 Creating the Forwarding from host
@@ -290,26 +305,26 @@ ZMQ Connection successful.
 Executing model graph in accelerator mode:
 Progress: |██████████████████████████████| 100.0% 10|10 Complete.  10/10
 Model is executed in accelerator mode.
-Processing image: /home/docker/sima-cli/test_images/000000006894.jpg
-Wrote output image to /home/docker/sima-cli/build/accel_pred/test_000000006894.jpg
-Processing image: /home/docker/sima-cli/test_images/000000019221.jpg
-Wrote output image to /home/docker/sima-cli/build/accel_pred/test_000000019221.jpg
-Processing image: /home/docker/sima-cli/test_images/000000022589.jpg
-Wrote output image to /home/docker/sima-cli/build/accel_pred/test_000000022589.jpg
-Processing image: /home/docker/sima-cli/test_images/000000032941.jpg
-Wrote output image to /home/docker/sima-cli/build/accel_pred/test_000000032941.jpg
-Processing image: /home/docker/sima-cli/test_images/000000048504.jpg
-Wrote output image to /home/docker/sima-cli/build/accel_pred/test_000000048504.jpg
-Processing image: /home/docker/sima-cli/test_images/000000572408.jpg
-Wrote output image to /home/docker/sima-cli/build/accel_pred/test_000000572408.jpg
-Processing image: /home/docker/sima-cli/test_images/000000573626.jpg
-Wrote output image to /home/docker/sima-cli/build/accel_pred/test_000000573626.jpg
-Processing image: /home/docker/sima-cli/test_images/000000574520.jpg
-Wrote output image to /home/docker/sima-cli/build/accel_pred/test_000000574520.jpg
-Processing image: /home/docker/sima-cli/test_images/000000577735.jpg
-Wrote output image to /home/docker/sima-cli/build/accel_pred/test_000000577735.jpg
-Processing image: /home/docker/sima-cli/test_images/000000581062.jpg
-Wrote output image to /home/docker/sima-cli/build/accel_pred/test_000000581062.jpg
+  Detections: 2
+  Annotated image written to: /home/docker/sima-cli/build/accel_pred/000000006894.jpg
+  Detections: 2
+  Annotated image written to: /home/docker/sima-cli/build/accel_pred/000000019221.jpg
+  Detections: 2
+  Annotated image written to: /home/docker/sima-cli/build/accel_pred/000000022589.jpg
+  Detections: 12
+  Annotated image written to: /home/docker/sima-cli/build/accel_pred/000000032941.jpg
+  Detections: 4
+  Annotated image written to: /home/docker/sima-cli/build/accel_pred/000000048504.jpg
+  Detections: 4
+  Annotated image written to: /home/docker/sima-cli/build/accel_pred/000000572408.jpg
+  Detections: 1
+  Annotated image written to: /home/docker/sima-cli/build/accel_pred/000000573626.jpg
+  Detections: 2
+  Annotated image written to: /home/docker/sima-cli/build/accel_pred/000000574520.jpg
+  Detections: 2
+  Annotated image written to: /home/docker/sima-cli/build/accel_pred/000000577735.jpg
+  Detections: 2
+  Annotated image written to: /home/docker/sima-cli/build/accel_pred/000000581062.jpg
 ```
 
 
@@ -317,7 +332,7 @@ The evaluation of the compiled model generates images annotated with bounding bo
 
 
 
-<img src="./readme_images/accel_test_000000574520.jpg" alt="" style="height: 500px; width:500px;"/>
+<img src="./readme_images/accel_pred_000000022589.jpg" alt="" style="height: 400px; width:500px;"/>
 
 
 
@@ -330,9 +345,9 @@ The model can be benchmarked on the target board. This uses random data to test 
 
 ```shell
 python ./get_fps/network_eval/network_eval.py \
-    --model_file_path   ./build/yolox_s_opt_no_reshapes/benchmark/yolox_s_opt_no_reshapes_stage1_mla.elf \
-    --mpk_json_path     ./build/yolox_s_opt_no_reshapes/benchmark/yolox_s_opt_no_reshapes_mpk.json \
-    --dv_host           192.168.8.20 \
+    --model_file_path   ./build/yolov8x-p2_opt_4o/benchmark/yolov8x-p2_opt_4o_stage1_mla.elf \
+    --mpk_json_path     ./build/yolov8x-p2_opt_4o/benchmark/yolov8x-p2_opt_4o_mpk.json \
+    --dv_host           <target_ip_address> \
     --image_size        640 640 3 \
     --verbose \
     --bypass_tunnel \
@@ -345,21 +360,21 @@ python ./get_fps/network_eval/network_eval.py \
 ```shell
 Running model in MLA-only mode
 Copying the model files to DevKit
-sima@192.168.1.29's password: 
-FPS = 560
-FPS = 566
-FPS = 568
-FPS = 569
-FPS = 570
-FPS = 571
-FPS = 571
-FPS = 571
-FPS = 572
-FPS = 572
+sima@192.168.1.21's password: 
+FPS = 108
+FPS = 109
+FPS = 109
+FPS = 109
+FPS = 109
+FPS = 109
+FPS = 109
+FPS = 109
+FPS = 109
+FPS = 109
 Ran 100 frame(s)
 ```
 
-Note that this is the throughput of only the MLA (i.e. the YoloX model), it does not include any pre or post-processing.
+Note that this is the throughput of only the MLA (i.e. the modified YoloV8x_p2 model), it does not include any pre or post-processing.
 
 
 ## Building the GStreamer Pipeline ##
@@ -367,18 +382,18 @@ Note that this is the throughput of only the MLA (i.e. the YoloX model), it does
 
 ## Files & Folders
 
-* yolo_s.onnx -  original YoloX Small model (not used)
-* yolox_surgery_no_reshape.py - graph surgery script (not used)
-* yolo_s_opt_no_reshapes.onnx - post surgery ONNX model
-* run_onnx.py - executes and evaluates the floating-point ONNX model
+* rewrite_yolov8mp2_4_outs.py - graph surgery script
+* yolo_model.py - graph surgery utilities
+* run_onnx_single_output.py - executes and evaluates the single output floating-point ONNX model
+* run_onnx_4_outs.py - executes and evaluates the post-surgery floating-point ONNX model
 * run_modelsdk.py - quantizes & compiles, optionally evaluates the quantized model
 * run_accelmode.py - executes the model in hardware
 * utils.py - common utilities functions
-* payload_contents.py - contents of custom Python plugin
-* yolox_s_opt_no_reshapes_mpk_rtspsrc - working version of the final GStreamer pipeline
 * get_fps - scripts for benchmarking
 * calib_images.zip - images for calibration
 * test_images.zip - images for testing
+* start.py - start docker container
+* stop.py stop docker container
 
 ## Acknowledgements
 

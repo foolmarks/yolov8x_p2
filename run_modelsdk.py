@@ -192,8 +192,6 @@ def implement(args):
   print(f"Results will be written to {results_dir}", flush=True)
 
 
-
-
   
   '''
   Load the floating-point ONNX model into Sima format
@@ -276,15 +274,16 @@ def implement(args):
     utils.prepare_output_dir(f'{annotated_images}')
     print(f"Annotated images will be written to {annotated_images}", flush=True)
 
-    image_paths = utils.get_image_paths(args.input_dir)
+    image_paths = utils.get_image_paths(args.test_dir)
     num_images = min(args.num_test_images, len(image_paths))
+    print(f'Using {num_images} out of {len(image_paths)}  test images',flush=True)
     image_paths = image_paths[:num_images]
 
     inputs = dict()
     for input_name in input_shapes_dict.keys():
         for img_path in image_paths:
             filename = os.path.basename(img_path)
-            print(f"\nProcessing image: {filename}", flush=True)
+            print(f"Processing image: {filename}", flush=True)
 
             # Load original image (any size)
             img_bgr = cv2.imread(img_path)
@@ -296,7 +295,22 @@ def implement(args):
 
             inputs[input_name] = utils.preprocess_image(img_bgr,do_transpose=False)
 
+            '''
+            Returns a list of np arrays
+            (1, 160, 160, 64)
+            (1, 80, 80, 64)
+            (1, 40, 40, 64)
+            (1, 20, 20, 64)
+            (1, 160, 160, 80)
+            (1, 80, 80, 80)
+            (1, 40, 40, 80)
+            (1, 20, 20, 80)
+            '''
             quantized_net_output = quant_model.execute(inputs, fast_mode=True)
+
+            for i, out in enumerate(quantized_net_output):
+                quantized_net_output[i] = np.transpose(out, (0, 3, 1, 2))
+
 
             # Postprocess in 640x640 space
             boxes_640, scores, class_ids = utils.postprocess_yolov8x_p2_4o(
@@ -318,7 +332,7 @@ def implement(args):
             annotated = utils.draw_detections(img_bgr.copy(), boxes_orig, scores, class_ids, utils.COCO_CLASSES)
 
 
-            out_path = os.path.join(args.output_dir, filename)
+            out_path = os.path.join(annotated_images, filename)
             ok = cv2.imwrite(out_path, annotated)
             if not ok:
                 raise RuntimeError(f"Failed to write output image: {out_path}")
@@ -364,6 +378,8 @@ def run_main():
   ap.add_argument('-bc',  '--bias_corr',         action='store_true', help="Use bias correction. Default is no bias correction")
   ap.add_argument('-ce',  '--chan_equal',        action='store_true', help="Use channel equalization. Default is no channel equalization")
   ap.add_argument('-bf16', '--bf16',             action='store_true', help="Use BlockFloat16 quantization. If not set, quant_bits argument is used")
+  ap.add_argument('-ct',  '--conf_thres',        type=float, default=0.45, help="Confidence threshold")
+  ap.add_argument('-it',  '--iou_thres',         type=float, default=0.45, help="IoU threshold for NMS")
   args = ap.parse_args()
 
   print('\n'+DIVIDER,flush=True)

@@ -173,7 +173,7 @@ def implement(args) -> None:
 
     for img_path in image_paths:
         filename = os.path.basename(img_path)
-        print(f"\nProcessing image: {filename}", flush=True)
+        print(f"Processing image: {filename}", flush=True)
 
         # Load original image (any size)
         img_bgr = cv2.imread(img_path)
@@ -220,9 +220,9 @@ def run_main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--input-dir",   type=str,   default="./test_images",      help="Path to input image folder")
     ap.add_argument("--model",       type=str,   default="yolov8x-p2.onnx",    help="Path to ONNX model")
-    ap.add_argument("--output-dir",  type=str,   default="./build/onnx_pred",  help="Path to output folder for annotated images")
-    ap.add_argument("--conf-thres",  type=float, default=0.45,                 help="Confidence threshold")
-    ap.add_argument("--iou-thres",   type=float, default=0.45,                 help="IoU threshold for NMS")
+    ap.add_argument("--output_dir",  type=str,   default="./build/onnx_pred",  help="Path to output folder for annotated images")
+    ap.add_argument("--conf_thres",  type=float, default=0.45,                 help="Confidence threshold")
+    ap.add_argument("--iou_thres",   type=float, default=0.45,                 help="IoU threshold for NMS")
     args = ap.parse_args()
 
     print('\n' + utils.DIVIDER, flush=True)

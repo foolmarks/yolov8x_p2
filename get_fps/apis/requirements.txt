@@ -1,0 +1,6 @@
+matplotlib==3.6.2
+numpy==1.23.2
+opencv_python==4.7.0.68
+rpyc==5.3.1
+pipreqs
+zmq

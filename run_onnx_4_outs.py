@@ -56,7 +56,7 @@ def implement(args) -> None:
 
     for img_path in image_paths:
         filename = os.path.basename(img_path)
-        print(f"\nProcessing image: {filename}", flush=True)
+        print(f"Processing image: {filename}", flush=True)
 
         # Load original image (any size)
         img_bgr = cv2.imread(img_path)
@@ -74,6 +74,7 @@ def implement(args) -> None:
         # [bbox_0, bbox_1, bbox_2, bbox_3,
         #  class_prob_0, class_prob_1, class_prob_2, class_prob_3]
         outputs = session.run(None, {input_name: img_input})
+
 
         # Postprocess in 640x640 space
         boxes_640, scores, class_ids = utils.postprocess_yolov8x_p2_4o(
@@ -109,9 +110,9 @@ def run_main():
     ap = argparse.ArgumentParser(description="Run YOLOv8x-p2 ONNX model with 4 bbox + 4 class_prob outputs.")
     ap.add_argument("--input-dir",   type=str,   default="./test_images",           help="Path to input image folder")
     ap.add_argument( "--model",      type=str,   default="yolov8x-p2_opt_4o.onnx",  help="Path to the ONNX model file.")
-    ap.add_argument("--output-dir",  type=str,   default="./build/onnx_4_pred",     help="Path to output folder for annotated images")
-    ap.add_argument("--conf-thres",  type=float, default=0.45,                      help="Confidence threshold")
-    ap.add_argument("--iou-thres",   type=float, default=0.45,                      help="IoU threshold for NMS")
+    ap.add_argument("--output_dir",  type=str,   default="./build/onnx_4_pred",     help="Path to output folder for annotated images")
+    ap.add_argument("--conf_thres",  type=float, default=0.45,                      help="Confidence threshold")
+    ap.add_argument("--iou_thres",   type=float, default=0.45,                      help="IoU threshold for NMS")
     args = ap.parse_args()
 
     print('\n' + utils.DIVIDER, flush=True)
