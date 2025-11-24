@@ -25,10 +25,9 @@ import argparse
 import os, sys
 import cv2
 import onnxruntime as ort
+import numpy as np
 
 import utils
-
-
 
 
 def implement(args) -> None:
@@ -43,7 +42,6 @@ def implement(args) -> None:
     session = ort.InferenceSession(args.model, providers=["CPUExecutionProvider"])
     input_name = session.get_inputs()[0].name
 
-
     # Get all image paths from input folder
     image_paths = utils.get_image_paths(args.input_dir)
     if len(image_paths) == 0:
@@ -53,7 +51,6 @@ def implement(args) -> None:
     print(f"Found {len(image_paths)} image(s) in '{args.input_dir}'")
     print(f"Output images will be written to '{args.output_dir}'")
 
-
     for img_path in image_paths:
         filename = os.path.basename(img_path)
         print(f"Processing image: {filename}", flush=True)
@@ -61,12 +58,12 @@ def implement(args) -> None:
         # Load original image (any size)
         img_bgr = cv2.imread(img_path)
         if img_bgr is None:
-            print(f"  WARNING: Could not read image, skipping: {img_path}")
+            print(f"  Failed to read image: {img_path}")
             continue
 
         orig_h, orig_w = img_bgr.shape[:2]
 
-        # Preprocess (resize → tensor)
+        # Preprocess (resize / letterbox → tensor)
         img_input = utils.preprocess_image(img_bgr)
 
         print("Running inference...", flush=True)
@@ -75,16 +72,17 @@ def implement(args) -> None:
         #  class_prob_0, class_prob_1, class_prob_2, class_prob_3]
         outputs = session.run(None, {input_name: img_input})
 
+        # Transpose outputs from channels-first to channels-last
+        outputs = [np.transpose(out, (0, 2, 3, 1)) for out in outputs]
 
-        # Postprocess in 640x640 space
+        # Postprocess in 640x640 model space
         boxes_640, scores, class_ids = utils.postprocess_yolov8x_p2_4o(
             outputs,
             conf_thr=args.conf_thres,
             iou_thr=args.iou_thres,
             num_classes=80,
-            apply_class_sigmoid=True
-            )
-
+            apply_class_sigmoid=True,
+        )
 
         if boxes_640.shape[0] == 0:
             print("  No detections above confidence threshold.")
@@ -93,8 +91,12 @@ def implement(args) -> None:
             print(f"  Detections: {boxes_640.shape[0]}")
 
             # Scale boxes back to original image size
-            boxes_orig = utils.scale_boxes_to_original(boxes_640, orig_w, orig_h)   
-            annotated = utils.draw_detections(img_bgr.copy(), boxes_orig, scores, class_ids, utils.COCO_CLASSES)
+            boxes_orig = utils.scale_boxes_to_original(
+                boxes_640, orig_w, orig_h
+            )
+            annotated = utils.draw_detections(
+                img_bgr.copy(), boxes_orig, scores, class_ids, utils.COCO_CLASSES
+            )
 
         out_path = os.path.join(args.output_dir, filename)
         ok = cv2.imwrite(out_path, annotated)
@@ -104,10 +106,11 @@ def implement(args) -> None:
 
     return
 
+
 def run_main():
-  
+
     # construct the argument parser and parse the arguments
-    ap = argparse.ArgumentParser(description="Run YOLOv8x-p2 ONNX model with 4 bbox + 4 class_prob outputs.")
+    ap = argparse.ArgumentParser()
     ap.add_argument("--input-dir",   type=str,   default="./test_images",           help="Path to input image folder")
     ap.add_argument( "--model",      type=str,   default="yolov8x-p2_opt_4o.onnx",  help="Path to the ONNX model file.")
     ap.add_argument("--output_dir",  type=str,   default="./build/onnx_4_pred",     help="Path to output folder for annotated images")
@@ -115,14 +118,13 @@ def run_main():
     ap.add_argument("--iou_thres",   type=float, default=0.45,                      help="IoU threshold for NMS")
     args = ap.parse_args()
 
-    print('\n' + utils.DIVIDER, flush=True)
+    print("\n" + utils.DIVIDER, flush=True)
     print(sys.version, flush=True)
     print(utils.DIVIDER, flush=True)
 
     implement(args)
 
     return
-
 
 
 if __name__ == "__main__":

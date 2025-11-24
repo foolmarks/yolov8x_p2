@@ -379,6 +379,99 @@ Note that this is the throughput of only the MLA (i.e. the modified YoloV8x_p2 m
 
 ## Building the GStreamer Pipeline ##
 
+Make sample images that can be used with the simaaisrc plugin:
+
+```shell
+python make_samples_640.py
+```
+
+
+Make the baseline pipeline:
+
+```shell
+mpk project create --model-path ./build/yolov8x-p2_opt_4o/yolov8x-p2_opt_4o_mpk.tar.gz --src-plugin simaaisrc --input-resource ./build/samples_640/img%d.rgb --input-width 640 --input-height 640 --input-img-type RGB
+```
+
+
+### Add the Python custom plugin ###
+
+
+Modify .project/pluginsInfo.json to add a new plugin called 'yolov8xp2_postproc_overlay' - this will be the   :
+
+
+```json
+{
+    "pluginsInfo": [
+        {
+            "gid": "processcvu",
+            "path": "plugins/processcvu"
+        },
+        {
+            "gid": "processmla",
+            "path": "plugins/processmla"
+        },
+        {
+            "gid" : "yolov8xp2_postproc_overlay",
+            "path" : "plugins/yolov8xp2_postproc_overlay"
+        }
+    ]
+}
+```
+
+
+
+Add a folder to contain the custom Python plugin and copy the templates into it:
+
+```shell
+mkdir -p ./yolov8x-p2_opt_4o_mpk_simaaisrc/plugins/yolov8xp2_postproc_overlay
+cp /usr/local/simaai/plugin_zoo/gst-simaai-plugins-base/gst/templates/aggregator_python/python/*.py ./yolov8x-p2_opt_4o_mpk_simaaisrc/plugins/yolov8xp2_postproc_overlay/.
+```
+
+
+Open 'application.json' and add the following into the "plugins" section of the JSON file:
+
+
+```shell
+    {
+      "name": "simaai_yolov8xp2_postproc_overlay",
+      "pluginGid": "yolov8xp2_postproc_overlay",
+      "sequence" : 5
+    }
+```
+
+
+Modify the 'gst' string:
+
+
+```shell
+    "gst": "simaaisrc location=/data/simaai/applications/yolov8x-p2_opt_4o_mpk_simaaisrc/etc/img%d.rgb node-name=decoder delay=1000 mem-target=1 index=1 loop=true ! 'video/x-raw, format=(string)RGB, width=(int)640, height=(int)640' ! tee name=source ! queue2 ! simaaiprocesscvu  name=simaaiprocesspreproc_1 ! simaaiprocessmla  name=simaaiprocessmla_1 ! simaaiprocesscvu  name=simaaiprocessdetess_dequant_1 ! yolov8xp2_postproc_overlay  name='simaai_yolov8xp2_postproc_overlay' ! queue2 ! 'video/x-raw, format=(string)RGB, width=(int)640, height=(int)640' ! fakesink source. ! queue2 ! simaai_yolov8xp2_postproc_overlay. "
+```
+
+
+
+
+
+
+
+Compile the pipeline:
+
+```shell
+mpk create --clean --board-type modalix -d ./yolov8x-p2_opt_4o_mpk_simaaisrc -s ./yolov8x-p2_opt_4o_mpk_simaaisrc
+```
+
+
+
+Deploy
+
+```shell
+mpk device connect -d devkit -u sima -p edgeai -t 192.168.1.21
+mpk deploy -f ./yolov8x-p2_opt_4o_mpk_simaaisrc/project.mpk -d devkit -t 192.168.1.21
+```
+
+
+
+
+
 
 ## Files & Folders
 

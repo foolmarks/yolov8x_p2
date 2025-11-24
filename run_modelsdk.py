@@ -308,9 +308,6 @@ def implement(args):
             '''
             quantized_net_output = quant_model.execute(inputs, fast_mode=True)
 
-            for i, out in enumerate(quantized_net_output):
-                quantized_net_output[i] = np.transpose(out, (0, 3, 1, 2))
-
 
             # Postprocess in 640x640 space
             boxes_640, scores, class_ids = utils.postprocess_yolov8x_p2_4o(
@@ -330,7 +327,6 @@ def implement(args):
             # Scale boxes back to original image size
             boxes_orig = utils.scale_boxes_to_original(boxes_640, orig_w, orig_h)   
             annotated = utils.draw_detections(img_bgr.copy(), boxes_orig, scores, class_ids, utils.COCO_CLASSES)
-
 
             out_path = os.path.join(annotated_images, filename)
             ok = cv2.imwrite(out_path, annotated)

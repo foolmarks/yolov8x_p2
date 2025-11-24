@@ -1,0 +1,160 @@
+{
+  "graph_name": "detessdequant",
+  "cpu": "CVU",
+  "next_cpu": "APU",
+  "input_buffers": [
+    {
+      "memories": [
+        {
+          "segment_name": "mla_output_tensor",
+          "graph_input_name": "input_tensor"
+        }
+      ],
+      "name": "simaaiprocessmla_1"
+    }
+  ],
+  "output_memory_order": [
+    "output_tensor"
+  ],
+  "debug": "EVXX_DBG_DISABLED",
+  "batch_size": 1,
+  "num_in_tensor": 8,
+  "data_type": [
+    "INT8",
+    "INT8",
+    "INT8",
+    "INT8",
+    "INT8",
+    "INT8",
+    "INT8",
+    "INT8"
+  ],
+  "dq_scale": [
+    14.058069124723222,
+    16.5295811788653,
+    15.149011595476845,
+    20.63971560936824,
+    9.230125460860773,
+    6.339173135280018,
+    4.924817581991785,
+    11.101278173940338
+  ],
+  "dq_zp": [
+    -50,
+    -51,
+    -55,
+    -53,
+    127,
+    121,
+    115,
+    127
+  ],
+  "fp16_out_en": [
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false
+  ],
+  "input_depth": [
+    64,
+    64,
+    64,
+    64,
+    80,
+    80,
+    80,
+    80
+  ],
+  "input_height": [
+    160,
+    80,
+    40,
+    20,
+    160,
+    80,
+    40,
+    20
+  ],
+  "input_width": [
+    160,
+    80,
+    40,
+    20,
+    160,
+    80,
+    40,
+    20
+  ],
+  "output_format": [
+    "NHWC",
+    "NHWC",
+    "NHWC",
+    "NHWC",
+    "NHWC",
+    "NHWC",
+    "NHWC",
+    "NHWC"
+  ],
+  "slice_depth": [
+    64,
+    64,
+    64,
+    64,
+    80,
+    80,
+    80,
+    80
+  ],
+  "slice_height": [
+    2,
+    1,
+    1,
+    1,
+    2,
+    1,
+    1,
+    1
+  ],
+  "slice_width": [
+    160,
+    80,
+    40,
+    20,
+    160,
+    80,
+    40,
+    20
+  ],
+  "caps": {
+    "sink_pads": [
+      {
+        "media_type": "application/vnd.simaai.tensor",
+        "params": [
+          {
+            "name": "format",
+            "type": "string",
+            "values": "MLA",
+            "json_field": null
+          }
+        ]
+      }
+    ],
+    "src_pads": [
+      {
+        "media_type": "application/vnd.simaai.tensor",
+        "params": [
+          {
+            "name": "format",
+            "type": "string",
+            "values": "DETESSDEQUANT",
+            "json_field": null
+          }
+        ]
+      }
+    ]
+  }
+}

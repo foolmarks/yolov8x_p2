@@ -39,7 +39,7 @@ Author: Mark Harvey
 '''
 
 
-import os, sys, shutil
+import os, sys
 import argparse
 import numpy as np
 from pathlib import Path
@@ -149,10 +149,6 @@ def implement(args):
     '''   
     for i,p in enumerate(pred):
         
-        for j, out in enumerate(p): 
-            p[j]= np.transpose(out, (0, 3, 1, 2))
-
-
         # Postprocess in 640x640 space
         boxes_640, scores, class_ids = utils.postprocess_yolov8x_p2_4o(
             p,
