@@ -506,5 +506,6 @@ mpk deploy -f ./yolov8x-p2_opt_4o_mpk_simaaisrc/project.mpk -d devkit -t 192.168
 ## Acknowledgements
 
 * 'davsolai' on HuggingFace for the trained PyTorch model
+* Kristina Stevanovic of Sima Technologies for the graph surgery code.
 
 
