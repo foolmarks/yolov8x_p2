@@ -9,7 +9,7 @@ This tutorial demonstrates the following steps:
   * Evaluation of the quantized model.
   * Benchmarking of the compiled model.
   * Executing a compiled model on a hardware platform.
-  * Building a GStreamer pipeline with IP camera input
+  * Building a GStreamer pipeline with USB camera input.
 
 
 YOLOv8x uses three detection heads on feature maps P3, P4, P5, corresponding to strides 8, 16 and 32 (so for a 640×640 input you get 80×80, 40×40, 20×20 grids). The p2 variant modifies the architecture so that the detector outputs from P2–P5 instead of P3–P5:
@@ -88,6 +88,7 @@ First, we will convert it to ONNX format:
 python export2onnx.py
 ```
 
+ ..the output from this will be an ONNX model called 'yolov8x-p2.onnx'
 
 
 ## Execute The Original Floating-Point ONNX model ##
@@ -154,9 +155,23 @@ Images annotated with bounding boxes are written into the ./build/onnx_pred fold
 
 ## Graph Surgery ##
 
+
+The original ONNX model will not be fully implemented on the MLA so some graph surgery is required:
+
+
 ```shell
 python rewrite_yolov8mp2_4_outs.py
 ```
+
+
+This generates a new ONNX model called 'yolov8x-p2_opt_4o.onnx' which has 4 output pairs:
+
+
+
+<img src="./readme_images/model_out.png" alt="" style="height: 520px; width:450px;"/>
+
+
+
 
 ## Execute The Modified Floating-Point ONNX model ##
 

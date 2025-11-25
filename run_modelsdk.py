@@ -345,10 +345,11 @@ def implement(args):
 
   print(f'Wrote compiled model to {results_dir}/{output_model_name}_mpk.tar.gz',flush=True)
 
-  # extract elf anfd mpk json for use in bechmarking
+  # extract elf and mpk json for use in benchmarking
   with tarfile.open(f'{results_dir}/{output_model_name}_mpk.tar.gz') as tar:
      tar.extract(f'{output_model_name}_mpk.json' ,f'{results_dir}/benchmark')
      tar.extract(f'{output_model_name}_stage1_mla.elf' ,f'{results_dir}/benchmark')
+     tar.extract(f'0_boxdecoder.json' ,f'{results_dir}')
 
 
   return
