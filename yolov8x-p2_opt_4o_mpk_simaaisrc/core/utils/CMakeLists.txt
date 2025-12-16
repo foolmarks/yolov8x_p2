@@ -34,7 +34,7 @@ project("commonutils"
   VERSION 0.1
   DESCRIPTION "SiMa.AI Utils library Library"
   HOMEPAGE_URL "https://bitbucket.org/sima-ai/gst-simaai-plugins-base"
-  LANGUAGES CXX)
+  LANGUAGES C CXX)
 
 if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE RelWithDebInfo CACHE STRING "Choose the type of build, options are: None Debug Release RelWithDebInfo MinSizeRel." FORCE)

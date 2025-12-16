@@ -165,6 +165,7 @@ int live_trace_reader_run(const struct live_trace_reader_init_data_t params)
     int retry_count = 0;
 
     // Run graph
+    live_trace_reader_running_status = LIVE_TRACE_READER_RUNNING_STATUS_RUN;
     do {
         if (!graph) {
             graph = live_trace_reader_make_graph(params);

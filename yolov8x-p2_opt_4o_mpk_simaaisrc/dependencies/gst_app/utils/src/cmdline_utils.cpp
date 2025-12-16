@@ -22,6 +22,7 @@ namespace CmdLineUtils {
                   << "  --host-port <ports>     \"port1 port2 port3\" Space-separated list of host port numbers (optional)\n"
                   << "  --gst_string_replacements <jsonStr> Gst string replacement json string (optional)\n"
                   << "  --disable-lttng         disable lttng-session creation and LTR starting\n"
+                  << "  --swap-model            Enable possibility to swap ML models\n"
                   << std::endl;
     }
 
@@ -40,7 +41,8 @@ namespace CmdLineUtils {
                             std::vector<std::string> &host_ips,
                             std::vector<std::string> &host_ports,
                             json &gst_replacement_json,
-                            bool &enable_lttng)
+                            bool &enable_lttng,
+                            bool &swappable)
     {
 
         struct option cmdline_options[] = {
@@ -52,6 +54,7 @@ namespace CmdLineUtils {
             {"gst_string_replacements", required_argument, 0, 'a'},
             {"instance_id", required_argument, 0, 'n'},
             {"disable-lttng", no_argument, 0, 'l'},
+            {"swap-model", no_argument, 0, 's'},
             {0,0,0,0}
         };
 
@@ -59,7 +62,7 @@ namespace CmdLineUtils {
         int option_index = 0;
         std::string instance_id;
 
-        while((opt = getopt_long(argc, argv, "m:g:r:i:p:a:n:",
+        while((opt = getopt_long(argc, argv, "m:g:r:i:p:a:n:s",
                                  cmdline_options, &option_index)) != -1) {
             switch(opt) {
                 case 'm':
@@ -87,6 +90,9 @@ namespace CmdLineUtils {
                 case 'l':
                     enable_lttng = false;
                     break;
+                case 's':
+                    swappable = true;
+                    break;
                 default:
                     print_usage();
                     exit(1);
@@ -113,7 +119,8 @@ namespace CmdLineUtils {
                          const std::vector<std::string> &host_ips,
                          const std::vector<std::string> &host_ports,
                          json &gst_replacement_json,
-                         bool enable_lttng)
+                         bool enable_lttng,
+                         bool swappable)
     {
 
         std::cout << "gst-string: " << gst_string << std::endl;
@@ -140,6 +147,8 @@ namespace CmdLineUtils {
         }
 
         std::cout << "LTTNG enable: " << enable_lttng << std::endl;
+
+        std::cout << "Swappable ML model: " << swappable << std::endl;
     }
 
 

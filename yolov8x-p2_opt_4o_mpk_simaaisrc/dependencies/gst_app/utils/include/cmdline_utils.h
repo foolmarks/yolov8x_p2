@@ -18,7 +18,8 @@ namespace CmdLineUtils {
                             std::vector<std::string> &host_ips,
                             std::vector<std::string> &host_ports,
                             json &gst_replacement_json,
-                            bool &enable_lttng);
+                            bool &enable_lttng,
+                            bool &swappable);
 
     bool validate_required_parameters(const std::string &gst_string,
                                       const std::string &manifest_json_path);
@@ -34,7 +35,8 @@ namespace CmdLineUtils {
                               const std::vector<std::string> &host_ips,
                               const std::vector<std::string> &host_ports,
                               json &gst_replacement_json,
-                              bool enable_lttng);
+                              bool enable_lttng,
+                              bool swappable);
 
 } // namespace CmdLineUtils
 } // namespace utils

@@ -1,0 +1,17 @@
+{
+    "port": 0,
+    "images": {
+        "mpk_cli_toolset": {
+            "container_name": "vdp-cli-mpk_cli_toolset-2.0.0_palette_sdk_master_b240"
+        },
+        "yocto": {
+            "container_name": "vdp-cli-yocto-2.0.0_palette_sdk_master_b240"
+        },
+        "elxr": {
+            "container_name": "vdp-cli-elxr-2.0.0_palette_sdk_master_b240"
+        },
+        "modelsdk": {
+            "container_name": "vdp-cli-modelsdk-2.0.0_palette_sdk_master_b240"
+        }
+    }
+}

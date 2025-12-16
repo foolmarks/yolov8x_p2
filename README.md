@@ -2,6 +2,9 @@
 
 # WORK IN PROGRESS! #
 
+### Add a section here for required environment, tools, etc ###
+
+
 This tutorial demonstrates the following steps:
 
   * Running a trained FP32 ONNX model to provide baseline results.
@@ -30,52 +33,66 @@ The disadvantages are generally slower inference and higher memory usage. Also, 
 
 ## Starting the Palette SDK docker container ##
 
-The docker container can be started by running the start.py script from the command line:
+The docker container can be started using `sima-cli sdk start` from the command line. Follow the instructions to select and start the eLxr, ModelSDK and MPK containers:
 
 ```shell
-python start.py
+user@ubmsh2:~/projects/yolov8x_p2$ sima-cli sdk start
+✅ sima-cli is up-to-date
+🔧 Environment: host (linux)
+🖥️  Detected platform: Linux
+✅ Docker daemon is running.
+╭───────────────── 📘 SiMa.ai SDK Image Selection ──────────────────╮
+│ How to use this menu:                                             │
+│                                                                   │
+│ • Use ↑/↓ arrows then Space to select one or more images.         │
+│ • Press Enter to confirm your selection.                          │
+│ • These are local Docker images found containing 'sima-docker'.   │
+│ • Containers based on these images will be started automatically. │
+│ • Press CTRL+C to cancel anytime.                                 │
+╰───────────────────────────────────────────────────────────────────╯
+Single SDK version detected: 2.0.0_Palette_SDK_master_B240
+📦 Select SDK images to start: (Space to toggle, Enter to confirm) 
+  ◉ ✅ Select All
+  ◉ vdp-cli-elxr-2.0.0_palette_sdk_master_b240
+  ◉ vdp-cli-modelsdk-2.0.0_palette_sdk_master_b240
+❯ ◉ vdp-cli-mpk_cli_toolset-2.0.0_palette_sdk_master_b240
+  ○ vdp-cli-yocto-2.0.0_palette_sdk_master_b240
+  ○ 🚫 Cancel
 ```
-When asked to enter the the work directory, just respond with `./`
+
+When asked to enter the the workspace directory, just respond with `./`
 
 
-The output in the console should look something like this:
+
+Access the ModelSDK container with `sima-cli sdk model`:
 
 ```shell
-/home/projects/modelsdk_accelmode/./start.py:111: SyntaxWarning: invalid escape sequence '\P'
-  docker_start_cmd = 'cmd.exe /c "start "" "C:\Program Files\Docker\Docker\Docker Desktop.exe""'
-Set no_proxy to localhost,127.0.0.0
-Using port 49152 for the installation.
-Checking if the container is already running...
-Enter work directory [/home/projects/modelsdk_accelmode]: ./
-Starting the container: palettesdk_1_7_0_Palette_SDK_master_B219
-Checking SiMa SDK Bridge Network...
-SiMa SDK Bridge Network found.
-Creating and starting the Docker container...
-f72ae89b3c12494291a4b9f621f8d28f565705b8dd638fc058a79bfb5ce5e73c
-Successfully copied 3.07kB to /home/projects/modelsdk_accelmode/passwd.txt
-Successfully copied 3.07kB to palettesdk_1_7_0_Palette_SDK_master_B219:/etc/passwd
-Successfully copied 2.56kB to /home/projects/modelsdk_accelmode/shadow.txt
-Successfully copied 2.56kB to palettesdk_1_7_0_Palette_SDK_master_B219:/etc/shadow
-Successfully copied 2.56kB to /home/projects/modelsdk_accelmode/group.txt
-Successfully copied 2.56kB to palettesdk_1_7_0_Palette_SDK_master_B219:/etc/group
-Successfully copied 3.58kB to /home/projects/modelsdk_accelmode/sudoers.txt
-Successfully copied 3.58kB to palettesdk_1_7_0_Palette_SDK_master_B219:/etc/sudoers
-Successfully copied 2.05kB to palettesdk_1_7_0_Palette_SDK_master_B219:/home/docker/.simaai/.port
-user@f72ae89b3c12:/home$
+user@ubmsh2:~/projects/yolov8x_p2$ sima-cli sdk model
+✅ sima-cli is up-to-date
+🔧 Environment: host (linux)
+🖥️  Detected platform: Linux
+✅ Docker daemon is running.
+▶ Executing command in container: vdp-cli-modelsdk-2.0.0_palette_sdk_master_b240
+=============================================================
+ 🚀 Welcome to the ModelSDK Container 
+ 
+ ⚠️  IMPORTANT NOTICE:
+ Please keep all your work in the mounted path:
+     /home/docker/sima-cli 
+ to avoid losing files if the container is removed accidentally.
+=============================================================
+user@vdp-cli-modelsdk-2:/home/docker/sima-cli$ 
 ```
 
-Navigate into the working directory:
 
-```shell
-cd docker/sima-cli
-```
+Now unzip the calibration and test image samples:
 
-Unzip the test and calibration images:
 
 ```shell
 unzip calib_images.zip
 unzip test_images.zip
 ```
+
 
 
 ## Converting the PyTorch model to ONNX ##
@@ -85,6 +102,7 @@ The starting point will be a trained PyTorch model - the model file (model.pt) i
 First, we will convert it to ONNX format:
 
 ```shell
+pip install ultralytics
 python export2onnx.py
 ```
 
@@ -96,7 +114,7 @@ python export2onnx.py
 ONNXRuntime is included in the SDK docker, so we can run the floating-point model. This is useful to provide a baseline for comparing to the post-quantization and post-compile models. The run_onnx.py script includes pre- and postprocessing.
 
 > Note: The same pre-processing and post-processing is used at every step and will generally be similar to the pre/post-processing used during model training.
-> The pre-processing used in this Yolov8x_p2 example is resizing and padding to the model input size (usually 640,64) conversion from BGR to RGB format, pixel value normalization to the range 0->1s
+> The pre-processing used in this Yolov8x_p2 example is resizing and padding to the model input size (usually 640,640) conversion from BGR to RGB format, pixel value normalization to the range 0->1s
 
 
 ```shell
@@ -107,10 +125,10 @@ python run_onnx_single_out.py
 The expected console output is like this:
 
 ```shell
-user@7df5555533b9:/home/docker/sima-cli$ python run_onnx_single_out.py 
+user@vdp-cli-modelsdk-2:/home/docker/sima-cli$ python run_onnx_single_out.py 
 
 --------------------------------------------------
-3.10.12 (main, Aug  6 2025, 18:09:36) [GCC 11.4.0]
+3.10.12 (main, Nov  4 2025, 08:48:33) [GCC 11.4.0]
 --------------------------------------------------
 Found 10 image(s) in './test_images'
 Output images will be written to './build/onnx_pred'
@@ -155,18 +173,15 @@ Images annotated with bounding boxes are written into the ./build/onnx_pred fold
 
 ## Graph Surgery ##
 
-
 The original ONNX model will not be fully implemented on the MLA so some graph surgery is required:
 
 
 ```shell
-python rewrite_yolov8mp2_4_outs.py
+python rewrite_yolov8mp2_4_outs.py yolov8x-p2.onnx
 ```
 
 
 This generates a new ONNX model called 'yolov8x-p2_opt_4o.onnx' which has 4 output pairs:
-
-
 
 <img src="./readme_images/model_out.png" alt="" style="height: 520px; width:450px;"/>
 
@@ -210,11 +225,11 @@ The images are written into build/quant_pred folder:
 The expected console output is like this:
 
 ```shell
-mark@7df5555533b9:/home/docker/sima-cli$ python run_modelsdk.py -e
+user@modelsdk:/home/docker/sima-cli$ python run_modelsdk.py -e
 
 --------------------------------------------------
-Model SDK version 1.7.0
-3.10.12 (main, Aug  6 2025, 18:09:36) [GCC 11.4.0]
+Model SDK version 2.0.0
+3.10.12 (main, Nov  4 2025, 08:48:33) [GCC 11.4.0]
 --------------------------------------------------
 Results will be written to /home/docker/sima-cli/build/yolov8x-p2_opt_4o
 --------------------------------------------------
@@ -287,17 +302,18 @@ Run the model directly on the target board. This requires the target board to be
 python run_accelmode.py -hn <target_ip_address>
 ```
 
+Note: This will take some time to run as it compiles the quantized model from scratch.
 
 
 The output in the console will be something like this:
 
 
 ```shell
-user@c88084ef7e7b:/home/docker/sima-cli$ python run_accelmode.py 
+user@modelsdk88084ef7e7b:/home/docker/sima-cli$ python run_accelmode.py -hn 192.168.1.20
 
 --------------------------------------------------
-Model SDK version 1.7.0
-3.10.12 (main, Aug  6 2025, 18:09:36) [GCC 11.4.0]
+Model SDK version 2.0.0
+3.10.12 (main, Nov  4 2025, 08:48:33) [GCC 11.4.0]
 --------------------------------------------------
 Annotated images will be written to /home/docker/sima-cli/build/accel_pred
 Loading yolov8x-p2_opt_4o quantized model from build/yolov8x-p2_opt_4o
@@ -362,7 +378,7 @@ The model can be benchmarked on the target board. This uses random data to test 
 python ./get_fps/network_eval/network_eval.py \
     --model_file_path   ./build/yolov8x-p2_opt_4o/benchmark/yolov8x-p2_opt_4o_stage1_mla.elf \
     --mpk_json_path     ./build/yolov8x-p2_opt_4o/benchmark/yolov8x-p2_opt_4o_mpk.json \
-    --dv_host           <target_ip_address> \
+    --dv_host           192.168.1.21 \
     --image_size        640 640 3 \
     --verbose \
     --bypass_tunnel \
@@ -401,6 +417,24 @@ python make_samples_640.py
 ```
 
 
+Now exit out of the ModelSDK container:
+
+
+
+```shell
+user@vdp-cli-modelsdk-2:/home/docker/sima-cli$ exit
+```
+
+
+.. and access the MPK container:
+
+```shell
+sima-cli sdk mpk
+```
+
+
+
+
 Make the baseline pipeline:
 
 ```shell
@@ -411,12 +445,16 @@ mpk project create --model-path ./build/yolov8x-p2_opt_4o/yolov8x-p2_opt_4o_mpk.
 ### Add the Python custom plugin ###
 
 
-Modify .project/pluginsInfo.json to add a new plugin called 'yolov8xp2_postproc_overlay' - this will be the   :
+Modify .project/pluginsInfo.json to add a new plugin called 'yolov8xp2_postproc_overlay':
 
 
 ```json
 {
     "pluginsInfo": [
+        {
+            "gid": "simaaisrc",
+            "path": "plugins/simaaisrc"
+        },
         {
             "gid": "processcvu",
             "path": "plugins/processcvu"
@@ -434,7 +472,6 @@ Modify .project/pluginsInfo.json to add a new plugin called 'yolov8xp2_postproc_
 ```
 
 
-
 Add a folder to contain the custom Python plugin and copy the templates into it:
 
 ```shell
@@ -443,8 +480,22 @@ cp /usr/local/simaai/plugin_zoo/gst-simaai-plugins-base/gst/templates/aggregator
 ```
 
 
-Open 'application.json' and add the following into the "plugins" section of the JSON file:
+Copy the contents of the 'payload_contents.py' file into ../yolov8x-p2_opt_4o_mpk_simaaisrc/plugins/yolov8xp2_postproc_overlay/payload.py
 
+```shell
+cp payload_contents.py ./yolov8x-p2_opt_4o_mpk_simaaisrc/plugins/yolov8xp2_postproc_overlay/payload.py
+```
+
+Copy the 'utils.py' file into ../yolov8x-p2_opt_4o_mpk_simaaisrc/plugins/yolov8xp2_postproc_overlay
+
+```shell
+cp utils.py ./yolov8x-p2_opt_4o_mpk_simaaisrc/plugins/yolov8xp2_postproc_overlay/.
+```
+
+
+
+
+Open 'application.json' and add the following into the "plugins" section of the JSON file:
 
 ```shell
     {
@@ -459,12 +510,8 @@ Modify the 'gst' string:
 
 
 ```shell
-    "gst": "simaaisrc location=/data/simaai/applications/yolov8x-p2_opt_4o_mpk_simaaisrc/etc/img%d.rgb node-name=decoder delay=1000 mem-target=1 index=1 loop=true ! 'video/x-raw, format=(string)RGB, width=(int)640, height=(int)640' ! tee name=source ! queue2 ! simaaiprocesscvu  name=simaaiprocesspreproc_1 ! simaaiprocessmla  name=simaaiprocessmla_1 ! simaaiprocesscvu  name=simaaiprocessdetess_dequant_1 ! yolov8xp2_postproc_overlay  name='simaai_yolov8xp2_postproc_overlay' ! queue2 ! 'video/x-raw, format=(string)RGB, width=(int)640, height=(int)640' ! fakesink source. ! queue2 ! simaai_yolov8xp2_postproc_overlay. "
+    "gst": "simaaisrc location=/data/simaai/applications/yolov8x-p2_opt_4o_mpk_simaaisrc/etc/img%d.rgb node-name=decoder delay=1000 mem-target=1 index=1 loop=true ! 'video/x-raw, format=(string)RGB, width=(int)640, height=(int)640' ! tee name=source ! queue2 ! simaaiprocesscvu  name=simaaiprocesspreproc_1 ! simaaiprocessmla  name=simaaiprocessmla_1 ! simaaiprocesscvu  name=simaaiprocessdetess_dequant_1 ! yolov8xp2_postproc_overlay  name='simaai_yolov8xp2_postproc_overlay' ! 'video/x-raw, format=(string)RGB, width=(int)640, height=(int)640' ! fakesink source. ! queue2 ! simaai_yolov8xp2_postproc_overlay. "
 ```
-
-
-
-
 
 
 
@@ -472,6 +519,9 @@ Compile the pipeline:
 
 ```shell
 mpk create --clean --board-type modalix -d ./yolov8x-p2_opt_4o_mpk_simaaisrc -s ./yolov8x-p2_opt_4o_mpk_simaaisrc
+mpk create --clean --board-type modalix -d ./yolov8x-p2_opt_4o_mpk_boxdecode -s ./yolov8x-p2_opt_4o_mpk_boxdecode
+mpk create --clean --board-type modalix -d ./yolov8x-p2_opt_4o_mpk_nv12 -s ./yolov8x-p2_opt_4o_mpk_nv12
+mpk create --clean --board-type modalix -d ./yolov8x-p2_opt_4o_mpk_overlay -s ./yolov8x-p2_opt_4o_mpk_overlay
 ```
 
 
@@ -481,10 +531,15 @@ Deploy
 ```shell
 mpk device connect -d devkit -u sima -p edgeai -t 192.168.1.21
 mpk deploy -f ./yolov8x-p2_opt_4o_mpk_simaaisrc/project.mpk -d devkit -t 192.168.1.21
+
+
+mpk device connect -d devkit -u sima -p edgeai -t 192.168.1.21
+mpk deploy -f ./yolov8x-p2_opt_4o_mpk_overlay/project.mpk -d devkit -t 192.168.1.21
+
+
+mpk device connect -d devkit -u sima -p edgeai -t 192.168.1.21
+mpk deploy -f ./yolov8x-p2_opt_4o_mpk_nv12/project.mpk -d devkit -t 192.168.1.21
 ```
-
-
-
 
 
 

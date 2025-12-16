@@ -9,32 +9,12 @@
 
 static void on_connect(struct mosquitto* mosq_instance, void* obj, int rc)
 {
-	struct kpi_sender_sink *sink_data = (struct kpi_sender_sink *)obj;
-
-	if (rc == 0) {
+    if (rc == 0) {
         simaailog(SIMAAILOG_INFO, "Connected to the broker!");
     } else {
         simaailog(SIMAAILOG_ERR, "Failed to connect, return code: %d", rc);
         return;
     }
-
-    // subcribe to the incoming topic
-    // Append current pid to the subcribed topic
-	GString *req_topic = g_string_new(SIMAAI_MQTT_KPI_REQ_TOPIC);
-	g_string_append_printf(req_topic, "/%d", sink_data->pipeline_pid);
-
-	simaailog(SIMAAILOG_INFO, "MQTTClient subscribing to Topic: %s", req_topic->str);
-
-    int ret = mosquitto_subscribe(mosq_instance, NULL, req_topic->str, 0);
-    if (ret != MOSQ_ERR_SUCCESS) {
-        simaailog(SIMAAILOG_ERR, "Unable to subscribe to topic. Error: %s", mosquitto_strerror(ret));
-		g_string_free(req_topic, TRUE);
-		return;
-    } else {
-        simaailog(SIMAAILOG_INFO, "Subscribed to topic: %s", req_topic->str);
-    }
-
-	g_string_free(req_topic, TRUE);
 }
 
 static void on_log(struct mosquitto* mosq_instance, void* obj, int level, const char* str)
@@ -52,7 +32,7 @@ static void on_log(struct mosquitto* mosq_instance, void* obj, int level, const 
     }
 }
 
-struct mosquitto * mqtt_init(pid_t pid, mqtt_message_callback on_message, void *cb_user_data)
+struct mosquitto * mqtt_init(pid_t pid, void *cb_user_data)
 {
 	GString *client_id = g_string_new("kpi_client_");
 	g_string_append_printf(client_id, "%u", pid);
@@ -67,7 +47,6 @@ struct mosquitto * mqtt_init(pid_t pid, mqtt_message_callback on_message, void *
 
     mosquitto_connect_callback_set(mosq_instance, on_connect);
     mosquitto_log_callback_set(mosq_instance, on_log);
-	mosquitto_message_callback_set(mosq_instance, on_message);
 
 	g_string_free(client_id, TRUE);
 	return mosq_instance;

@@ -6,32 +6,33 @@
 ||   Unpublished Copyright (c) 2022-2023 SiMa.ai, All Rights Reserved.  ||
 **************************************************************************
  NOTICE:  All information contained herein is, and remains the property of
- SiMa.ai. The intellectual and technical concepts contained herein are 
- proprietary to SiMa and may be covered by U.S. and Foreign Patents, 
+ SiMa.ai. The intellectual and technical concepts contained herein are
+ proprietary to SiMa and may be covered by U.S. and Foreign Patents,
  patents in process, and are protected by trade secret or copyright law.
 
- Dissemination of this information or reproduction of this material is 
- strictly forbidden unless prior written permission is obtained from 
+ Dissemination of this information or reproduction of this material is
+ strictly forbidden unless prior written permission is obtained from
  SiMa.ai.  Access to the source code contained herein is hereby forbidden
- to anyone except current SiMa.ai employees, managers or contractors who 
- have executed Confidentiality and Non-disclosure agreements explicitly 
+ to anyone except current SiMa.ai employees, managers or contractors who
+ have executed Confidentiality and Non-disclosure agreements explicitly
  covering such access.
 
- The copyright notice above does not evidence any actual or intended 
+ The copyright notice above does not evidence any actual or intended
  publication or disclosure  of  this
 """
 
 import argparse
-import os, sys
+import os
+import sys
+
 import cv2
-import onnxruntime as ort
 import numpy as np
+import onnxruntime as ort
 
 import utils
 
 
 def implement(args) -> None:
-
     # Prepare output folder
     utils.prepare_output_dir(args.output_dir)
 
@@ -64,7 +65,7 @@ def implement(args) -> None:
         orig_h, orig_w = img_bgr.shape[:2]
 
         # Preprocess (resize / letterbox → tensor)
-        img_input = utils.preprocess_image(img_bgr)
+        img_input, bgr_640 = utils.preprocess_image(img_bgr)
 
         print("Running inference...", flush=True)
         # Outputs are returned in the order defined by the ONNX graph:
@@ -86,16 +87,20 @@ def implement(args) -> None:
 
         if boxes_640.shape[0] == 0:
             print("  No detections above confidence threshold.")
-            annotated = img_bgr.copy()
+            #            annotated = img_bgr.copy()
+            annotated = bgr_640.copy()
         else:
             print(f"  Detections: {boxes_640.shape[0]}")
 
             # Scale boxes back to original image size
-            boxes_orig = utils.scale_boxes_to_original(
-                boxes_640, orig_w, orig_h
-            )
+            # boxes_orig = utils.scale_boxes_to_original(
+            #    boxes_640, orig_w, orig_h
+            # )
+            # annotated = utils.draw_detections(
+            #    img_bgr.copy(), boxes_orig, scores, class_ids, utils.COCO_CLASSES
+            # )
             annotated = utils.draw_detections(
-                img_bgr.copy(), boxes_orig, scores, class_ids, utils.COCO_CLASSES
+                bgr_640.copy(), boxes_640, scores, class_ids, utils.COCO_CLASSES
             )
 
         out_path = os.path.join(args.output_dir, filename)
@@ -108,14 +113,32 @@ def implement(args) -> None:
 
 
 def run_main():
-
     # construct the argument parser and parse the arguments
     ap = argparse.ArgumentParser()
-    ap.add_argument("--input-dir",   type=str,   default="./test_images",           help="Path to input image folder")
-    ap.add_argument( "--model",      type=str,   default="yolov8x-p2_opt_4o.onnx",  help="Path to the ONNX model file.")
-    ap.add_argument("--output_dir",  type=str,   default="./build/onnx_4_pred",     help="Path to output folder for annotated images")
-    ap.add_argument("--conf_thres",  type=float, default=0.45,                      help="Confidence threshold")
-    ap.add_argument("--iou_thres",   type=float, default=0.45,                      help="IoU threshold for NMS")
+    ap.add_argument(
+        "--input-dir",
+        type=str,
+        default="./test_images",
+        help="Path to input image folder",
+    )
+    ap.add_argument(
+        "--model",
+        type=str,
+        default="yolov8x-p2_opt_4o.onnx",
+        help="Path to the ONNX model file.",
+    )
+    ap.add_argument(
+        "--output_dir",
+        type=str,
+        default="./build/onnx_4_pred",
+        help="Path to output folder for annotated images",
+    )
+    ap.add_argument(
+        "--conf_thres", type=float, default=0.45, help="Confidence threshold"
+    )
+    ap.add_argument(
+        "--iou_thres", type=float, default=0.45, help="IoU threshold for NMS"
+    )
     args = ap.parse_args()
 
     print("\n" + utils.DIVIDER, flush=True)

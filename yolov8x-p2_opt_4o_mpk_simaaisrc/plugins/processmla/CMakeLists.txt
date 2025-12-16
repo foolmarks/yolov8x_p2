@@ -37,6 +37,19 @@ set(plugin_name "simaaiprocessmla")
 # set the project name
 set(PROJECT_NAME "gst${plugin_name}")
 
+
+if (NOT "$ENV{DEPENDENCIES_DIR_1}" STREQUAL "")
+  set(CORE_ALLOCATOR_DIR $ENV{DEPENDENCIES_DIR_1}/allocator)
+  set(CORE_BUFFER_POOL_DIR $ENV{DEPENDENCIES_DIR_1}/buffer-pool)
+  set(CORE_CAPS_DIR $ENV{DEPENDENCIES_DIR_1}/caps)
+  set(CORE_UTILS_DIR $ENV{DEPENDENCIES_DIR_1}/utils)
+else()
+  set(CORE_ALLOCATOR_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../../core/allocator)
+  set(CORE_BUFFER_POOL_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../../core/buffer-pool)
+  set(CORE_CAPS_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../../core/caps)
+  set(CORE_UTILS_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../../core/utils)
+endif()
+
 project("${PROJECT_NAME}"
   VERSION 0.1
   DESCRIPTION "Simaai Process MLA libs"
@@ -79,10 +92,10 @@ target_include_directories( ${PROJECT_NAME} PUBLIC "$<INSTALL_INTERFACE:$<INSTAL
   ${GLIB2_INCLUDE_DIRS}
   ${JSON_GLIB_INCLUDE_DIRS}
   ${GSTREAMER_INCLUDE_DIRS}
-  ../../core/allocator
-  ../../core/buffer-pool
-  ../../core/caps
-  ../../core/utils
+  ${CORE_ALLOCATOR_DIR}
+  ${CORE_BUFFER_POOL_DIR}
+  ${CORE_CAPS_DIR}
+  ${CORE_UTILS_DIR}
 )
 
 find_library(GLIB2_LIBRARY glib-2.0 PATHS ${GLIB2_LIBRARY_DIRS} )

@@ -1,24 +1,21 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-
 """
 **************************************************************************
 ||                        SiMa.ai CONFIDENTIAL                          ||
 ||   Unpublished Copyright (c) 2022-2023 SiMa.ai, All Rights Reserved.  ||
 **************************************************************************
  NOTICE:  All information contained herein is, and remains the property of
- SiMa.ai. The intellectual and technical concepts contained herein are 
- proprietary to SiMa and may be covered by U.S. and Foreign Patents, 
+ SiMa.ai. The intellectual and technical concepts contained herein are
+ proprietary to SiMa and may be covered by U.S. and Foreign Patents,
  patents in process, and are protected by trade secret or copyright law.
 
- Dissemination of this information or reproduction of this material is 
- strictly forbidden unless prior written permission is obtained from 
+ Dissemination of this information or reproduction of this material is
+ strictly forbidden unless prior written permission is obtained from
  SiMa.ai.  Access to the source code contained herein is hereby forbidden
- to anyone except current SiMa.ai employees, managers or contractors who 
- have executed Confidentiality and Non-disclosure agreements explicitly 
+ to anyone except current SiMa.ai employees, managers or contractors who
+ have executed Confidentiality and Non-disclosure agreements explicitly
  covering such access.
 
- The copyright notice above does not evidence any actual or intended 
+ The copyright notice above does not evidence any actual or intended
  publication or disclosure  of  this
 """
 
@@ -28,9 +25,8 @@ import shutil
 from pathlib import Path
 from typing import List, Tuple
 
-import numpy as np
 import cv2
-
+import numpy as np
 
 # ---------------------------------------------------------------------------
 # Constants
@@ -38,36 +34,37 @@ import cv2
 
 INPUT_W: int = 640
 INPUT_H: int = 640
-JPEG_QUALITY: int = 95
+JPEG_QUALITY: int = 100
 IMAGE_EXTS = {".jpg", ".jpeg", ".png", ".bmp", ".tif", ".tiff", ".webp"}
 
 
 # ---------------------------------------------------------------------------
-# Image utility: letterbox (expects RGB uint8; returns BGR + RGB)
+# Image utility: letterbox (BGR-native core + optional RGB wrapper)
 # ---------------------------------------------------------------------------
 
-def letterbox_resize_color(rgb_img: np.ndarray, target_w: int = INPUT_W, target_h: int = INPUT_H) -> Tuple[np.ndarray, np.ndarray]:
-    """
-    Letterbox-resize an HxWx3 **RGB** uint8 image to (target_h, target_w) with black padding.
 
-    Input:
-        rgb_img: HxWx3, dtype=uint8, RGB order.
+def letterbox_resize_bgr(
+    bgr_img: np.ndarray, target_w: int = INPUT_W, target_h: int = INPUT_H
+) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+    """
+    Letterbox-resize an HxWx3 **BGR** uint8 image to (target_h, target_w) with black padding.
 
     Returns:
-        bgr_padded: HxWx3, uint8, BGR order (for OpenCV).
-        rgb_padded: HxWx3, uint8, RGB order.
+        bgr_padded:  (target_h, target_w, 3) uint8, BGR order (OpenCV-native)
+        rgb_padded:  (target_h, target_w, 3) uint8, RGB order
+        nv12_padded: (target_h*3//2, target_w) uint8, NV12 (Y plane + interleaved UV plane)
 
     Notes:
-        - Resizing/padding is performed on the BGR image (OpenCV-native), then we derive RGB.
-        - Both outputs are contiguous arrays.
+        - Resizing/padding is performed on BGR (OpenCV-native).
+        - RGB is derived once at the end (for raw .rgb output).
+        - NV12 is generated via fallback path: BGR -> I420 -> NV12 repack.
     """
-    if rgb_img.ndim != 3 or rgb_img.shape[-1] != 3:
-        raise ValueError(f"Expected HxWx3 RGB; got shape {rgb_img.shape}")
-    if rgb_img.dtype != np.uint8:
-        raise TypeError(f"Expected uint8 RGB image; got dtype {rgb_img.dtype}")
+    if bgr_img.ndim != 3 or bgr_img.shape[-1] != 3:
+        raise ValueError(f"Expected HxWx3 BGR; got shape {bgr_img.shape}")
+    if bgr_img.dtype != np.uint8:
+        raise TypeError(f"Expected uint8 BGR image; got dtype {bgr_img.dtype}")
 
-    # RGB -> BGR for OpenCV ops
-    bgr = rgb_img[..., ::-1]
+    bgr = np.ascontiguousarray(bgr_img)
 
     # Compute letterbox on BGR
     h0, w0 = bgr.shape[:2]
@@ -75,7 +72,11 @@ def letterbox_resize_color(rgb_img: np.ndarray, target_w: int = INPUT_W, target_
     new_w = int(round(w0 * r))
     new_h = int(round(h0 * r))
 
-    resized = bgr if (w0, h0) == (new_w, new_h) else cv2.resize(bgr, (new_w, new_h), interpolation=cv2.INTER_LINEAR)
+    resized = (
+        bgr
+        if (w0, h0) == (new_w, new_h)
+        else cv2.resize(bgr, (new_w, new_h), interpolation=cv2.INTER_LINEAR)
+    )
 
     dw = target_w - new_w
     dh = target_h - new_h
@@ -85,25 +86,139 @@ def letterbox_resize_color(rgb_img: np.ndarray, target_w: int = INPUT_W, target_
     pad_bottom = dh - pad_top
 
     bgr_padded = cv2.copyMakeBorder(
-        resized, pad_top, pad_bottom, pad_left, pad_right,
-        borderType=cv2.BORDER_CONSTANT, value=(0, 0, 0)
+        resized,
+        pad_top,
+        pad_bottom,
+        pad_left,
+        pad_right,
+        borderType=cv2.BORDER_CONSTANT,
+        value=(0, 0, 0),
     )
+    bgr_padded = np.ascontiguousarray(bgr_padded)
 
-    # Also return RGB
-    rgb_padded = bgr_padded[..., ::-1]
+    # -----------------------
+    # Validation: padded size
+    # -----------------------
+    if bgr_padded.shape[:2] != (target_h, target_w):
+        raise RuntimeError(
+            f"Letterbox produced unexpected size: got {bgr_padded.shape[:2]}, "
+            f"expected {(target_h, target_w)}"
+        )
+    if bgr_padded.dtype != np.uint8 or bgr_padded.ndim != 3 or bgr_padded.shape[2] != 3:
+        raise RuntimeError(
+            f"Unexpected padded BGR format: shape={bgr_padded.shape}, dtype={bgr_padded.dtype}"
+        )
 
-    return np.ascontiguousarray(bgr_padded), np.ascontiguousarray(rgb_padded)
+    # Derive RGB once (contiguous)
+    rgb_padded = np.ascontiguousarray(bgr_padded[..., ::-1])
+
+    # Fallback NV12 generation: BGR -> I420 -> NV12 repack (OpenCV layout: (H*3//2, W))
+    i420 = cv2.cvtColor(bgr_padded, cv2.COLOR_BGR2YUV_I420)
+    H, W = target_h, target_w
+
+    # -----------------------
+    # Validation: even dims
+    # -----------------------
+    if (H % 2) != 0 or (W % 2) != 0:
+        raise RuntimeError(f"I420/NV12 require even H/W. Got H={H}, W={W}")
+
+    # --------------------------------------
+    # Validation: I420 buffer size and shape
+    # --------------------------------------
+    expected_size = H * W * 3 // 2
+    if i420.dtype != np.uint8:
+        raise RuntimeError(f"Unexpected I420 dtype: {i420.dtype} (expected uint8)")
+    if i420.size != expected_size:
+        raise RuntimeError(
+            f"Unexpected I420 size: got {i420.size}, expected {expected_size} "
+            f"(i420.shape={i420.shape}, H={H}, W={W})"
+        )
+    expected_i420_shape = (H * 3 // 2, W)
+    if i420.ndim != 2 or i420.shape != expected_i420_shape:
+        raise RuntimeError(
+            f"Unexpected I420 shape: got {i420.shape}, expected {expected_i420_shape}"
+        )
+
+    # Y plane (H, W)
+    y_plane = i420[:H, :]
+
+    # U and V planes (each is H/2 * W/2 bytes), stored consecutively after Y
+    u_rows = H // 4
+    v_rows = H // 4
+    u_slice = i420[H : H + u_rows, :]
+    v_slice = i420[H + u_rows : H + u_rows + v_rows, :]
+
+    # -----------------------
+    # Validation: U/V slices
+    # -----------------------
+    if u_slice.size != (H // 2) * (W // 2):
+        raise RuntimeError(
+            f"Unexpected U slice size: got {u_slice.size}, expected {(H // 2) * (W // 2)} "
+            f"(u_slice.shape={u_slice.shape})"
+        )
+    if v_slice.size != (H // 2) * (W // 2):
+        raise RuntimeError(
+            f"Unexpected V slice size: got {v_slice.size}, expected {(H // 2) * (W // 2)} "
+            f"(v_slice.shape={v_slice.shape})"
+        )
+
+    u = u_slice.reshape(H // 2, W // 2)
+    v = v_slice.reshape(H // 2, W // 2)
+
+    nv12_padded = np.empty((H * 3 // 2, W), dtype=np.uint8)
+    nv12_padded[:H, :] = y_plane
+
+    # Interleaved UV plane (H/2, W): U in even columns, V in odd columns
+    uv = nv12_padded[H:, :].reshape(H // 2, W)
+    uv[:, 0::2] = u
+    uv[:, 1::2] = v
+
+    # -----------------------
+    # Validation: NV12 output
+    # -----------------------
+    if nv12_padded.shape != (H * 3 // 2, W):
+        raise RuntimeError(
+            f"Unexpected NV12 shape: got {nv12_padded.shape}, expected {(H * 3 // 2, W)}"
+        )
+
+    return bgr_padded, rgb_padded, np.ascontiguousarray(nv12_padded)
+
+
+def letterbox_resize_color(
+    rgb_img: np.ndarray, target_w: int = INPUT_W, target_h: int = INPUT_H
+) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+    """
+    Backward-compatible wrapper:
+    Letterbox-resize an HxWx3 **RGB** uint8 image to (target_h, target_w) with black padding.
+
+    Returns:
+        bgr_padded:  (target_h, target_w, 3) uint8, BGR order
+        rgb_padded:  (target_h, target_w, 3) uint8, RGB order
+        nv12_padded: (target_h*3//2, target_w) uint8, NV12 (Y + interleaved UV)
+    """
+    if rgb_img.ndim != 3 or rgb_img.shape[-1] != 3:
+        raise ValueError(f"Expected HxWx3 RGB; got shape {rgb_img.shape}")
+    if rgb_img.dtype != np.uint8:
+        raise TypeError(f"Expected uint8 RGB image; got dtype {rgb_img.dtype}")
+
+    bgr = np.ascontiguousarray(rgb_img[..., ::-1])
+    return letterbox_resize_bgr(bgr, target_w, target_h)
 
 
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
 
+
 def list_images(indir: Path) -> List[Path]:
     """List image files (non-recursive) in 'indir' matching known extensions."""
     if not indir.exists() or not indir.is_dir():
-        raise NotADirectoryError(f"Input directory not found or not a directory: {indir}")
-    imgs = [p for p in indir.iterdir() if p.is_file() and p.suffix.lower() in IMAGE_EXTS]
+        raise NotADirectoryError(
+            f"Input directory not found or not a directory: {indir}"
+        )
+    imgs = [
+        p for p in indir.iterdir() if p.is_file() and p.suffix.lower() in IMAGE_EXTS
+    ]
     imgs.sort()
     return imgs
 
@@ -121,6 +236,7 @@ def reset_outdir(outdir: Path) -> None:
 # Core
 # ---------------------------------------------------------------------------
 
+
 def save_letterboxed_from_folder(
     indir: Path,
     outdir: Path,
@@ -129,51 +245,90 @@ def save_letterboxed_from_folder(
     jpeg_quality: int = JPEG_QUALITY,
 ) -> Tuple[int, int]:
     """
-    Read images from 'indir', assume RGB content semantics, letterbox to 640x640,
-    and save JPEGs to a freshly created 'outdir' with 'prefix' and no zero padding.
-    Also writes the RGB raw buffer as <prefix><i>.rgb via numpy.tofile().
+    Read images from 'indir', letterbox-resize to 640x640, and save outputs into a freshly
+    created 'outdir' using the given filename 'prefix' and no zero padding.
+
+    For each processed image, this function writes:
+      - JPEG:      <prefix><i>.jpg        (letterboxed BGR, OpenCV imwrite; i starts at 0)
+      - Raw RGB:   <prefix><i+1>.rgb      (letterboxed RGB bytes via numpy.tofile)
+      - Raw NV12:  <prefix><i+1>.nv12     (letterboxed NV12 bytes via numpy.tofile)
+
+    Notes:
+      - The output directory is deleted and recreated on each run.
+      - 'saved' counts the number of raw files successfully written (RGB and NV12), not images.
     """
     paths = list_images(indir)
     total_available = len(paths)
     to_save = max(0, min(int(num_images), total_available))
 
-    logging.info(f"Found {total_available} image(s) in {indir}. Requested: {num_images}. Will save: {to_save}")
+    logging.info(
+        f"Found {total_available} image(s) in {indir}. Requested: {num_images}. Will save: {to_save}"
+    )
     for idx, p in enumerate(paths[:to_save]):
-        logging.debug(f"[{idx+1}/{to_save}] {p.name}")
+        logging.debug(f"[{idx + 1}/{to_save}] {p.name}")
 
     # Always recreate output directory
     reset_outdir(outdir)
 
     saved = 0
     for i, p in enumerate(paths[:to_save]):
-        # Read as BGR (OpenCV default) then convert to RGB for our API
+        # Read as BGR (OpenCV default)
         bgr_in = cv2.imread(str(p), cv2.IMREAD_COLOR)
         if bgr_in is None:
             logging.error(f"Failed to read image: {p}")
             continue
 
+        logging.info(f"Opened BGR shape for {p.name}: {bgr_in.shape}")
+
         if bgr_in.dtype != np.uint8 or bgr_in.ndim != 3 or bgr_in.shape[-1] != 3:
-            logging.error(f"Unexpected image format (expect HxWx3 uint8): {p} shape={None if bgr_in is None else bgr_in.shape}")
+            logging.error(
+                f"Unexpected image format (expect HxWx3 uint8): {p} "
+                f"shape={None if bgr_in is None else bgr_in.shape}"
+            )
             continue
 
-        rgb = bgr_in[..., ::-1]  # BGR -> RGB
-        bgr_out, rgb_out = letterbox_resize_color(rgb, INPUT_W, INPUT_H)  # returns (BGR, RGB)
+        # Avoidable channel swaps fixed: call BGR-native letterbox directly
+        bgr_out, rgb_out, nv12_out = letterbox_resize_bgr(bgr_in, INPUT_W, INPUT_H)
+
+        logging.info(
+            f"letterbox outputs for {p.name}: "
+            f"bgr_out={bgr_out.shape}, rgb_out={rgb_out.shape}, nv12_out={nv12_out.shape}"
+        )
+
+        # Validate output shapes before writing
+        if rgb_out.shape != (INPUT_H, INPUT_W, 3) or rgb_out.dtype != np.uint8:
+            logging.error(
+                f"Bad RGB output for {p.name}: shape={rgb_out.shape}, dtype={rgb_out.dtype}"
+            )
+            continue
+        if nv12_out.shape != (INPUT_H * 3 // 2, INPUT_W) or nv12_out.dtype != np.uint8:
+            logging.error(
+                f"Bad NV12 output for {p.name}: shape={nv12_out.shape}, dtype={nv12_out.dtype}"
+            )
+            continue
 
         # Write JPEG (BGR)
-        jpg_path = outdir / f"{prefix}{i}.jpg"  # no leading zeros
-        ok = cv2.imwrite(str(jpg_path), bgr_out, [int(cv2.IMWRITE_JPEG_QUALITY), int(jpeg_quality)])
+        jpg_path = outdir / f"{prefix}{i + 1}.jpg"  # no leading zeros
+        ok = cv2.imwrite(
+            str(jpg_path), bgr_out, [int(cv2.IMWRITE_JPEG_QUALITY), int(jpeg_quality)]
+        )
         if not ok:
             logging.error(f"Failed to write: {jpg_path}")
             continue
 
-        # Write raw RGB bytes
-        rgb_path = outdir / f"{prefix}{i}.rgb"
+        # Write raw RGB and raw NV12 buffers
+        rgb_path = outdir / f"{prefix}{i + 1}.rgb"
+        nv12_path = outdir / f"{prefix}{i + 1}.nv12"
         try:
-            # rgb_out is contiguous uint8 HxWx3
             rgb_out.tofile(str(rgb_path))
         except Exception as e:
             logging.error(f"Failed to write raw RGB file '{rgb_path}': {e}")
-            # still count the JPEG as saved
+        else:
+            saved += 1
+        try:
+            nv12_out.tofile(str(nv12_path))
+        except Exception as e:
+            logging.error(f"Failed to write raw NV12 file '{nv12_path}': {e}")
         else:
             saved += 1
 
@@ -184,23 +339,54 @@ def save_letterboxed_from_folder(
 # CLI
 # ---------------------------------------------------------------------------
 
+
 def build_argparser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(
-        description="Read RGB uint8 images from a folder, letterbox-resize to 640x640, and save as JPEG + raw RGB."
+        description="Read images from a folder, letterbox-resize to 640x640, and save as JPEG + raw RGB + raw NV12."
     )
-    p.add_argument("-i", "--indir", default="./test_images", help="Input folder with images (default: ./test_images)")
-    p.add_argument("-o", "--outdir", default="./build/samples_640", help="Output directory (default: ./build/samples_640)")
-    p.add_argument("--prefix", default="img", help="Filename prefix for outputs (default: img)")
-    p.add_argument("-m", "--num_images", type=int, default=5, help="Max number of images to process (default: 5)")
-    p.add_argument("--quality", type=int, default=JPEG_QUALITY, help=f"JPEG quality (default: {JPEG_QUALITY})")
-    p.add_argument("--log", default="INFO", choices=["DEBUG", "INFO", "WARNING", "ERROR"], help="Log level (default: INFO)")
+    p.add_argument(
+        "-i",
+        "--indir",
+        default="./test_images",
+        help="Input folder with images (default: ./test_images)",
+    )
+    p.add_argument(
+        "-o",
+        "--outdir",
+        default="./build/samples_640",
+        help="Output directory (default: ./build/samples_640)",
+    )
+    p.add_argument(
+        "--prefix", default="img", help="Filename prefix for outputs (default: img)"
+    )
+    p.add_argument(
+        "-m",
+        "--num_images",
+        type=int,
+        default=5,
+        help="Max number of images to process (default: 5)",
+    )
+    p.add_argument(
+        "--quality",
+        type=int,
+        default=JPEG_QUALITY,
+        help=f"JPEG quality (default: {JPEG_QUALITY})",
+    )
+    p.add_argument(
+        "--log",
+        default="INFO",
+        choices=["DEBUG", "INFO", "WARNING", "ERROR"],
+        help="Log level (default: INFO)",
+    )
     return p
 
 
 def main() -> None:
     args = build_argparser().parse_args()
 
-    logging.basicConfig(level=getattr(logging, args.log), format="%(levelname)s: %(message)s")
+    logging.basicConfig(
+        level=getattr(logging, args.log), format="%(levelname)s: %(message)s"
+    )
 
     indir = Path(args.indir)
     outdir = Path(args.outdir)
@@ -216,7 +402,9 @@ def main() -> None:
         jpeg_quality=args.quality,
     )
 
-    logging.info(f"Done. Saved {saved}/{attempted} pairs (JPEG + .rgb) from '{indir.name}'.")
+    logging.info(
+        f"Done. Wrote {saved} raw file(s) (RGB and/or NV12) for {attempted} image(s) from '{indir.name}'."
+    )
 
 
 if __name__ == "__main__":

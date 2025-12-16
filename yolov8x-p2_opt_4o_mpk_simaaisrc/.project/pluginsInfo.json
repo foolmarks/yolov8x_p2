@@ -12,7 +12,7 @@
             "gid": "processmla",
             "path": "plugins/processmla"
         },
-        {
+                {
             "gid" : "yolov8xp2_postproc_overlay",
             "path" : "plugins/yolov8xp2_postproc_overlay"
         }

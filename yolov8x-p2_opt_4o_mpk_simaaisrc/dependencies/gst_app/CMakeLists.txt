@@ -40,6 +40,7 @@ find_library(GST_APP gstapp-1.0 PATHS ${GSTREAMER_LIBRARY_DIRS})
 find_library(GST_VIDEO gstvideo-1.0 PATHS ${GSTREAMER_LIBRARY_DIRS})
 find_library(GST_RTP gstrtp-1.0 PATHS ${GSTREAMER_LIBRARY_DIRS})
 find_library(MOSQUITTO_LIBRARY mosquitto PATHS ${MOSQUITTO_LIBRARY_DIRS})
+find_library(JSON_GLIB_LIBRARY json-glib-1.0 PATHS ${JSON_GLIB_LIBRARY_DIRS})
 
 # Verify if the library is found
 if(NOT MOSQUITTO_LIBRARY)
@@ -51,6 +52,7 @@ find_package(PkgConfig REQUIRED)
 pkg_check_modules(GLIB2 REQUIRED glib-2.0)
 pkg_check_modules(GSTREAMER REQUIRED gstreamer-1.0)
 pkg_check_modules(MOSQUITTO REQUIRED libmosquitto)
+pkg_check_modules(JSON_GLIB REQUIRED json-glib-1.0)
 
 # Common include directories
 set(COMMON_INCLUDE_DIRS
@@ -72,6 +74,7 @@ set(COMMON_PUBLIC_INCLUDE_DIRS
   ${GLIB2_INCLUDE_DIRS}
   ${GSTREAMER_INCLUDE_DIRS}
   ${MOSQUITTO_INCLUDE_DIRS}
+  ${JSON_GLIB_INCLUDE_DIRS}
 )
 
 # Add an executable target for the main application
@@ -98,6 +101,7 @@ target_link_libraries(${GST_APP}
   ${GSTBASE_LIBRARY}
   ${GST_LIBRARY}
   ${MOSQUITTO_LIBRARY}
+  ${JSON_GLIB_LIBRARY}
   simaailog
   mosquitto
   simaaiparser

@@ -1,52 +1,121 @@
-'''
+"""
 **************************************************************************
 ||                        SiMa.ai CONFIDENTIAL                          ||
 ||   Unpublished Copyright (c) 2022-2023 SiMa.ai, All Rights Reserved.  ||
 **************************************************************************
  NOTICE:  All information contained herein is, and remains the property of
- SiMa.ai. The intellectual and technical concepts contained herein are 
- proprietary to SiMa and may be covered by U.S. and Foreign Patents, 
+ SiMa.ai. The intellectual and technical concepts contained herein are
+ proprietary to SiMa and may be covered by U.S. and Foreign Patents,
  patents in process, and are protected by trade secret or copyright law.
 
- Dissemination of this information or reproduction of this material is 
- strictly forbidden unless prior written permission is obtained from 
+ Dissemination of this information or reproduction of this material is
+ strictly forbidden unless prior written permission is obtained from
  SiMa.ai.  Access to the source code contained herein is hereby forbidden
- to anyone except current SiMa.ai employees, managers or contractors who 
- have executed Confidentiality and Non-disclosure agreements explicitly 
+ to anyone except current SiMa.ai employees, managers or contractors who
+ have executed Confidentiality and Non-disclosure agreements explicitly
  covering such access.
-'''
+"""
+
 import os
 from typing import List, Tuple
 
 import cv2
 import numpy as np
 
-
 COCO_CLASSES = [
-    "person", "bicycle", "car", "motorcycle", "airplane", "bus", "train",
-    "truck", "boat", "traffic light", "fire hydrant", "stop sign",
-    "parking meter", "bench", "bird", "cat", "dog", "horse", "sheep",
-    "cow", "elephant", "bear", "zebra", "giraffe", "backpack", "umbrella",
-    "handbag", "tie", "suitcase", "frisbee", "skis", "snowboard",
-    "sports ball", "kite", "baseball bat", "baseball glove", "skateboard",
-    "surfboard", "tennis racket", "bottle", "wine glass", "cup", "fork",
-    "knife", "spoon", "bowl", "banana", "apple", "sandwich", "orange",
-    "broccoli", "carrot", "hot dog", "pizza", "donut", "cake", "chair",
-    "couch", "potted plant", "bed", "dining table", "toilet", "tv",
-    "laptop", "mouse", "remote", "keyboard", "cell phone", "microwave",
-    "oven", "toaster", "sink", "refrigerator", "book", "clock", "vase",
-    "scissors", "teddy bear", "hair drier", "toothbrush"
+    "person",
+    "bicycle",
+    "car",
+    "motorcycle",
+    "airplane",
+    "bus",
+    "train",
+    "truck",
+    "boat",
+    "traffic light",
+    "fire hydrant",
+    "stop sign",
+    "parking meter",
+    "bench",
+    "bird",
+    "cat",
+    "dog",
+    "horse",
+    "sheep",
+    "cow",
+    "elephant",
+    "bear",
+    "zebra",
+    "giraffe",
+    "backpack",
+    "umbrella",
+    "handbag",
+    "tie",
+    "suitcase",
+    "frisbee",
+    "skis",
+    "snowboard",
+    "sports ball",
+    "kite",
+    "baseball bat",
+    "baseball glove",
+    "skateboard",
+    "surfboard",
+    "tennis racket",
+    "bottle",
+    "wine glass",
+    "cup",
+    "fork",
+    "knife",
+    "spoon",
+    "bowl",
+    "banana",
+    "apple",
+    "sandwich",
+    "orange",
+    "broccoli",
+    "carrot",
+    "hot dog",
+    "pizza",
+    "donut",
+    "cake",
+    "chair",
+    "couch",
+    "potted plant",
+    "bed",
+    "dining table",
+    "toilet",
+    "tv",
+    "laptop",
+    "mouse",
+    "remote",
+    "keyboard",
+    "cell phone",
+    "microwave",
+    "oven",
+    "toaster",
+    "sink",
+    "refrigerator",
+    "book",
+    "clock",
+    "vase",
+    "scissors",
+    "teddy bear",
+    "hair drier",
+    "toothbrush",
 ]
 
 
-DIVIDER = '-' * 50
+DIVIDER = "-" * 50
 
 # model input dimensions
 INPUT_H = 640
 INPUT_W = 640
 
 
-def scale_boxes_to_original(boxes_640: np.ndarray, orig_w: int, orig_h: int) -> np.ndarray:
+def scale_boxes_to_original(
+    boxes_640: np.ndarray, orig_w: int, orig_h: int
+) -> np.ndarray:
     """
     Scale boxes from letterboxed (INPUT_H, INPUT_W) space back to original image size.
 
@@ -96,7 +165,9 @@ def get_image_paths(folder: str) -> List[str]:
     """
     valid_exts = (".jpg", ".jpeg", ".png", ".bmp", ".tif", ".tiff")
     if not os.path.isdir(folder):
-        raise NotADirectoryError(f"Input directory does not exist or is not a directory: {folder}")
+        raise NotADirectoryError(
+            f"Input directory does not exist or is not a directory: {folder}"
+        )
 
     files = sorted(os.listdir(folder))
     image_paths = [
@@ -152,16 +223,16 @@ def draw_detections(
         x2 = int(max(0, min(w - 1, x2)))
         y2 = int(max(0, min(h - 1, y2)))
 
-        color = (0,255,0)
+        color = (0, 255, 0)
 
         cv2.rectangle(img, (x1, y1), (x2, y2), color, 2)
 
-        class_name = class_names[cls_id] if 0 <= cls_id < len(class_names) else f"id_{cls_id}"
+        class_name = (
+            class_names[cls_id] if 0 <= cls_id < len(class_names) else f"id_{cls_id}"
+        )
         label = f"{class_name}:{score:.2f}"
 
-        (tw, th), baseline = cv2.getTextSize(
-            label, cv2.FONT_HERSHEY_SIMPLEX, 0.5, 1
-        )
+        (tw, th), baseline = cv2.getTextSize(label, cv2.FONT_HERSHEY_SIMPLEX, 0.5, 1)
         th = th + baseline
         cv2.rectangle(img, (x1, y1 - th), (x1 + tw, y1), color, thickness=-1)
         cv2.putText(
@@ -204,9 +275,11 @@ def preprocess_image(img_bgr: np.ndarray, do_transpose: bool = True) -> np.ndarr
 
     # Resize with aspect ratio preserved
     if (w0, h0) != (new_w, new_h):
-        img_resized = cv2.resize(img_bgr, (new_w, new_h), interpolation=cv2.INTER_LINEAR)
+        bgr_resized = cv2.resize(
+            img_bgr, (new_w, new_h), interpolation=cv2.INTER_LINEAR
+        )
     else:
-        img_resized = img_bgr.copy()
+        bgr_resized = img_bgr.copy()
 
     # Compute padding
     dw = target_w - new_w  # total padding width
@@ -218,8 +291,8 @@ def preprocess_image(img_bgr: np.ndarray, do_transpose: bool = True) -> np.ndarr
     pad_bottom = dh - pad_top
 
     # Apply padding (BORDER_CONSTANT with black)
-    img_padded = cv2.copyMakeBorder(
-        img_resized,
+    bgr_padded = cv2.copyMakeBorder(
+        bgr_resized,
         pad_top,
         pad_bottom,
         pad_left,
@@ -229,15 +302,15 @@ def preprocess_image(img_bgr: np.ndarray, do_transpose: bool = True) -> np.ndarr
     )
 
     # BGR -> RGB
-    img_rgb = cv2.cvtColor(img_padded, cv2.COLOR_BGR2RGB)
-    img = img_rgb.astype(np.float32) / 255.0  # normalize to [0,1]
+    img_rgb = cv2.cvtColor(bgr_padded, cv2.COLOR_BGR2RGB)
+    img_rgb = img_rgb.astype(np.float32) / 255.0  # normalize to [0,1]
 
     # HWC -> CHW if requested (for ONNX input)
     if do_transpose:
-        img = np.transpose(img, (2, 0, 1))  # HWC -> CHW
-    img = np.expand_dims(img, axis=0)   # (1,3,H,W) or (1,H,W,3)
+        img_rgb = np.transpose(img_rgb, (2, 0, 1))  # HWC -> CHW
+    img_rgb = np.expand_dims(img_rgb, axis=0)  # (1,3,H,W) or (1,H,W,3)
 
-    return img
+    return img_rgb, bgr_padded
 
 
 def _sigmoid(x: np.ndarray) -> np.ndarray:
@@ -441,7 +514,7 @@ def postprocess_yolov8x_p2_4o(
         all_boxes.append(boxes_xyxy)
         all_scores.append(scores)
 
-    boxes = np.concatenate(all_boxes, axis=0)    # (N_total, 4) in 640x640 space
+    boxes = np.concatenate(all_boxes, axis=0)  # (N_total, 4) in 640x640 space
     scores = np.concatenate(all_scores, axis=0)  # (N_total, num_classes)
 
     if apply_class_sigmoid:

@@ -42,6 +42,14 @@ project("${PROJECT_NAME}"
   DESCRIPTION "SiMaAi MLPerf Src Gstremer plugin"
   LANGUAGES C CXX)
 
+if (NOT "$ENV{DEPENDENCIES_DIR_1}" STREQUAL "")
+  set(CORE_ALLOCATOR_DIR $ENV{DEPENDENCIES_DIR_1}/allocator)
+  set(CORE_BUFFER_POOL_DIR $ENV{DEPENDENCIES_DIR_1}/buffer-pool)
+else()
+  set(CORE_ALLOCATOR_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../../core/allocator)
+  set(CORE_BUFFER_POOL_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../../core/buffer-pool)
+endif()
+
 if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE RelWithDebInfo CACHE STRING "Choose the type of build, options are: None Debug Release RelWithDebInfo MinSizeRel." FORCE)
 endif()
@@ -83,8 +91,8 @@ target_include_directories ("${PROJECT_NAME}"
 target_include_directories( ${PROJECT_NAME} PUBLIC "$<INSTALL_INTERFACE:$<INSTALL_PREFIX>/${CMAKE_INSTALL_INCLUDEDIR}>"
   ${GLIB2_INCLUDE_DIRS}
   ${GSTREAMER_INCLUDE_DIRS}
-  ../../core/allocator
-  ../../core/buffer-pool
+  ${CORE_ALLOCATOR_DIR}
+  ${CORE_BUFFER_POOL_DIR}
 )
 
 find_library(GLIB2_LIBRARY glib-2.0 PATHS ${GLIB2_LIBRARY_DIRS} )

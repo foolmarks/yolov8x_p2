@@ -1389,13 +1389,15 @@ void gst_simaai_processcvu_print_dispatcher_error(GstSimaaiProcesscvu * self,
 gboolean 
 run_processcvu (GstSimaaiProcesscvu * self, simaaidispatcher::JobEVXX & job)
 {
-  self->priv->t0 = std::chrono::steady_clock::now();
+  if (!self->silent) {
+    self->priv->t0 = std::chrono::steady_clock::now();
+  }
+
   if (self->transmit) {
     tracepoint_pipeline_cvu_start(self->priv->frame_id, (char *)self->priv->node_name.c_str(), (char *)self->priv->stream_id.c_str());
   }
 
   int res = self->priv->dispatcher->run(job, self->priv->tp);
-
   if (res) {
     gst_simaai_processcvu_print_dispatcher_error(self, res);
     return FALSE;
@@ -1405,19 +1407,16 @@ run_processcvu (GstSimaaiProcesscvu * self, simaaidispatcher::JobEVXX & job)
     tracepoint_pipeline_cvu_end(self->priv->frame_id, (char *)self->priv->node_name.c_str(), (char *)self->priv->stream_id.c_str());
   }
 
-  self->priv->t1 = std::chrono::steady_clock::now();
-  auto elapsed = std::chrono::duration_cast<std::chrono::microseconds>(self->priv->t1 - self->priv->t0);
-  auto duration = elapsed.count() / 1000.0 ;
-
   if (!self->silent) {
+    self->priv->t1 = std::chrono::steady_clock::now();
+    auto elapsed = std::chrono::duration_cast<std::chrono::microseconds>(self->priv->t1 - self->priv->t0);
+    auto duration = elapsed.count() / 1000.0 ;
+
     self->priv->run_count++;
 
     GST_DEBUG_OBJECT(self, "run count[%ld], frame_id[%ld], run time in ms: %f", 
                      self->priv->run_count, self->priv->frame_id, duration);
   }
-  auto kernel_rt = std::chrono::duration_cast<std::chrono::microseconds>(self->priv->tp.second - self->priv->tp.first);
-  auto kernel_duration = kernel_rt.count() / 1000.0 ;
-  GST_DEBUG_OBJECT(self, "EVXX Graph ID %d run time is :  %f ms", job.graphID, kernel_duration);
 
   if (self->priv->dump_data) {
     if (cvu_dump_output_buffer (self, self->priv->frame_id) !=0 ) {

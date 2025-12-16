@@ -12,7 +12,7 @@
 
 typedef void (*mqtt_message_callback)(struct mosquitto *, void *, const struct mosquitto_message *);
 
-struct mosquitto * mqtt_init(pid_t pid, mqtt_message_callback on_message, void *cb_user_data);
+struct mosquitto * mqtt_init(pid_t pid, void *cb_user_data);
 bool mqtt_connect(struct mosquitto *mosq_instance, const char *host, int port, int keepalive);
 
 bool mqtt_publish(struct mosquitto *mosq_instance, const char *topic, const char *message);

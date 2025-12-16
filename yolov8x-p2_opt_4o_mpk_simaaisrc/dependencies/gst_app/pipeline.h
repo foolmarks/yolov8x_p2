@@ -22,7 +22,8 @@ class Pipeline {
                 const std::vector<std::string>& host_ips_vec,
                 const std::vector<std::string>& host_ports_vec,
                 json &gst_replacement_json,
-                bool enable_lttng_param);
+                bool enable_lttng_param,
+                bool swappable);
         ~Pipeline();
         /// @brief This function will orchestrate the loginc of building and running the pipeline
         void pipeline_driver();
@@ -60,6 +61,13 @@ class Pipeline {
         pid_t gstAppPid;
         int transmit_plugin_count = 0;
         bool enable_lttng;
+        std::string session_url;
+
+        bool swappable;
+        const gchar *gst_string_swappable;
+        const gchar *artifacts_path;
+        const gchar *render_rule;
+        guint32 swap_num;
 
         // private member functions
         void start_pipeline();
@@ -85,6 +93,13 @@ class Pipeline {
         void set_transmit_property(gboolean transmit_value);
         void init_signals();
 
+        void get_artifacts_path();
+        void get_render_rule();
+        void process_gst_string_swappable();
+        gboolean swap_model();
+
+        void start_KPI_collecting();
+        void stop_KPI_collecting();
 };
 
 #endif // PIPELINE_H

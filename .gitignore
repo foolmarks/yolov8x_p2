@@ -6,4 +6,13 @@ test_images/
 *.onnx
 *.pt
 project.mpk
+*.elf
+.TMP_DIR
 
+
+# SDK containers
+.vdp-cli-*
+
+
+
+BACKUP_*

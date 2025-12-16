@@ -84,6 +84,11 @@
     "INT8",
     "INT8"
   ],
+  "graph_name": "mla",
+  "node_name": "mla",
+  "cpu": "MLA",
+  "next_cpu": 1,
+  "debug": "EVXX_DBG_DISABLED",
   "caps": {
     "sink_pads": [
       {
@@ -123,43 +128,43 @@
           {
             "name": "data_type",
             "type": "string",
-            "values": "(INT8, INT16, INT32)",
+            "values": "(INT8, INT16, INT32), (INT8, INT16, INT32), (INT8, INT16, INT32), (INT8, INT16, INT32), (INT8, INT16, INT32), (INT8, INT16, INT32), (INT8, INT16, INT32), (INT8, INT16, INT32)",
             "json_field": "data_type"
           },
           {
             "name": "width",
             "type": "int",
-            "values": "(1 - 4096)",
+            "values": "(1 - 4096), (1 - 4096), (1 - 4096), (1 - 4096), (1 - 4096), (1 - 4096), (1 - 4096), (1 - 4096)",
             "json_field": "output_width"
           },
           {
             "name": "height",
             "type": "int",
-            "values": "(1 - 4096)",
+            "values": "(1 - 4096), (1 - 4096), (1 - 4096), (1 - 4096), (1 - 4096), (1 - 4096), (1 - 4096), (1 - 4096)",
             "json_field": "output_height"
           },
           {
             "name": "depth",
             "type": "int",
-            "values": "(1 - 4096)",
+            "values": "(1 - 4096), (1 - 4096), (1 - 4096), (1 - 4096), (1 - 4096), (1 - 4096), (1 - 4096), (1 - 4096)",
             "json_field": "output_depth"
           },
           {
             "name": "slice_width",
             "type": "int",
-            "values": "(1 - 4096)",
+            "values": "(1 - 4096), (1 - 4096), (1 - 4096), (1 - 4096), (1 - 4096), (1 - 4096), (1 - 4096), (1 - 4096)",
             "json_field": "slice_width"
           },
           {
             "name": "slice_height",
             "type": "int",
-            "values": "(1 - 4096)",
+            "values": "(1 - 4096), (1 - 4096), (1 - 4096), (1 - 4096), (1 - 4096), (1 - 4096), (1 - 4096), (1 - 4096)",
             "json_field": "slice_height"
           },
           {
             "name": "slice_depth",
             "type": "int",
-            "values": "(1 - 4096)",
+            "values": "(1 - 4096), (1 - 4096), (1 - 4096), (1 - 4096), (1 - 4096), (1 - 4096), (1 - 4096), (1 - 4096)",
             "json_field": "slice_depth"
           }
         ]

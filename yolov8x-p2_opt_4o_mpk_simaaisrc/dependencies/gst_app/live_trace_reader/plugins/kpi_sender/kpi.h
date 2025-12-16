@@ -63,6 +63,7 @@ void json_kpi_list_add_json_node(GHashTable *map, uint64_t id, JsonNode *node);
 gboolean json_kpi_list_is_full(GHashTable *map, uint64_t id, guint limit);
 void json_kpi_list_free(json_kpi_list_t *list);
 void json_kpi_list_free_map(GHashTable *map);
+int json_kpi_list_get_plugins_count(json_kpi_list_t *list);
 
 JsonNode *json_kpi_list_make_pipeline_kpi(GHashTable *map, uint64_t id, const char *pipeline_id, pid_t pid, const char* stream_id);
 

@@ -29,10 +29,10 @@
   "aspect_ratio": true,
   "tile_width": 32,
   "tile_height": 640,
-  "tile_depth": 3,
+  "tile_channels": 3,
   "tessellate": true,
-  "input_depth": 3,
-  "output_depth": 3,
+  "input_channels": 3,
+  "output_channels": 3,
   "q_zp": -128,
   "q_scale": 254.9999849195601,
   "channel_mean": [
@@ -53,6 +53,7 @@
   "input_stride": 1,
   "output_stride": 1,
   "output_dtype": "EVXX_INT8",
+  "node_name": "preproc",
   "caps": {
     "sink_pads": [
       {

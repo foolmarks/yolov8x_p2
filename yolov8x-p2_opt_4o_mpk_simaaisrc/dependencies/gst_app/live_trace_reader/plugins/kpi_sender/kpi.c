@@ -475,3 +475,8 @@ JsonNode *json_kpi_list_make_pipeline_kpi(GHashTable *map, uint64_t id, const ch
 
 	return root;
 }
+
+int json_kpi_list_get_plugins_count(json_kpi_list_t *list)
+{
+	return list ? list->nodes->len : -1;
+}

@@ -956,7 +956,6 @@ run_process_mla(GstSimaaiProcessMLA *self, GstBuffer *inbuf, GstBuffer * outbuf)
   if (self->transmit) {
     tracepoint_pipeline_mla_start(self->priv->frame_id, (char *)self->priv->node_name.c_str(), (char *)self->priv->stream_id.c_str());
   }
-  self->priv->t0 = std::chrono::steady_clock::now();
 
   job.path = self->priv->model_path;
   job.handle = self->priv->model_handle;
@@ -1027,18 +1026,6 @@ run_process_mla(GstSimaaiProcessMLA *self, GstBuffer *inbuf, GstBuffer * outbuf)
 
     tracepoint_pipeline_mla_end(self->priv->frame_id, (char *)self->priv->node_name.c_str(), (char *)self->priv->stream_id.c_str());
   }
-
-  self->priv->t1 = std::chrono::steady_clock::now();
-  auto elapsed = 
-      std::chrono::duration_cast<std::chrono::microseconds>(self->priv->t1 - 
-                                                            self->priv->t0);
-  auto duration = elapsed.count() / 1000.0 ;
-  auto kernel_rt = 
-      std::chrono::duration_cast<std::chrono::microseconds>(self->priv->tp.second - 
-                                                            self->priv->tp.first);
-  auto kernel_duration = kernel_rt.count() / 1000.0 ;
-  GST_DEBUG_OBJECT(self, "MLA model  %s run time is :  %f ms", 
-                          job.path.c_str(), kernel_duration);
 
   if (self->priv->dump_data) {
     retval = dump_output_buffer(self, out_meminfo.data);

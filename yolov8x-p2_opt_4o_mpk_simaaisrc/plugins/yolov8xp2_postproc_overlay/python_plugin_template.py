@@ -64,12 +64,13 @@ class Logger:
                 cls._instance._initialized = False  # Mark as not yet initialized
         return cls._instance
 
+
     def __init__(self, log_file="/var/log/simaai.log", enable_console=False):
         if self._initialized:
             return  # Skip reinitialization
 
         self.enable_console = enable_console
-        self.logger = logging.getLogger("SimaAI")
+        self.logger = logging.getLogger("SimaAI_PyGast")
         self.logger.setLevel(LogLevel.INFO.value)  # Default level
         self.logger.propagate = False  # Disable propagation to parent loggers
         self.level = LogLevel.INFO.value
@@ -79,6 +80,14 @@ class Logger:
             self.logger.removeHandler(handler)
 
         formatter = logging.Formatter('%(asctime)s - [%(levelname)s] %(message)s')
+
+        # Ensure log file's parent directory exists
+        log_dir = os.path.dirname(log_file)
+        if log_dir and not os.path.exists(log_dir):
+            try:
+                os.makedirs(log_dir, exist_ok=True)
+            except Exception as e:
+                print(f"Failed to create log directory {log_dir}: {e}")
 
         # File handler
         file_handler = logging.FileHandler(log_file)
@@ -175,7 +184,7 @@ if os.path.isfile(MANIFEST_JSON_PATH):
     with open(manifest_path) as f:
         manifest_config = json.load(f)
     appId = manifest_config["applications"][0]["appId"]
-    app_logfile = f"/tmp/simaai/{appId}_Pipeline/gst_app.log"
+    app_logfile = f"/tmp/simaai/{appId}_Pipeline/pygast_plugins/gst_app.log"
 else:
     app_logfile = f"/var/log/simaai.log" # use this to test stand alone
 logger = Logger(log_file=app_logfile)
@@ -292,7 +301,7 @@ class AggregatorTemplate(GstBase.Aggregator):
         self.register_metadata()
         self.metadata_add_failed = False
         self.metadata_len = 0
-
+        self.seg_idx = 0
         #trial. Can you get information about the parent plugin in the init function. 
 
 
@@ -437,7 +446,9 @@ class AggregatorTemplate(GstBase.Aggregator):
 
         if self.mpk_path:
             parser = Parser(self.mpk_path)
-            self.model_output_shapes, _ = parser.get_tensor_info()
+            model_output_shapes, _ = parser.get_tensor_info()
+            # Parser returns shapes for all segments; we need only the first segment here
+            self.model_output_shapes = model_output_shapes[self.seg_idx]
             print(f"Model output shapes: {self.model_output_shapes}")
         stream_start_event = Gst.Event.new_stream_start("aggregator-template-stream")
         self.srcpad.push_event(stream_start_event)
