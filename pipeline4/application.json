@@ -1,0 +1,94 @@
+{
+    "name": "pipeline4",
+    "appId": "pipeline4",
+    "sequence": 1,
+    "pipelines": [
+        {
+            "name": "pipeline4_Pipeline",
+            "sequence": 1,
+            "plugins": [
+                {
+                    "name": "simaaiprocesspreproc_1",
+                    "pluginGid": "processcvu",
+                    "sequence": 2,
+                    "resources": {
+                        "configs": [
+                            "cfg/0_preproc.json"
+                        ]
+                    }
+                },
+                {
+                    "name": "simaaiprocessmla_1",
+                    "pluginGid": "processmla",
+                    "sequence": 3,
+                    "resources": {
+                        "configs": [
+                            "cfg/0_process_mla.json"
+                        ],
+                        "shared": [
+                            "res/yolov8x-p2_opt_4o_stage1_mla.elf"
+                        ]
+                    }
+                },
+                {
+                    "name": "simaaibox_decoder_1",
+                    "pluginGid": "genericboxdecode",
+                    "sequence": 4,
+                    "resources": {
+                        "configs": [
+                            "cfg/0_boxdecoder.json"
+                        ]
+                    }
+                },
+                {
+                  "name": "simaaioverlay_1",
+                  "pluginGid": "overlay",
+                  "sequence": 5,
+                  "resources": {
+                    "binaries": [
+                      "res/labels.txt"
+                    ]
+                  }
+                }
+            ],
+            "connections": [],
+            "meta": {
+                "groups": []
+            },
+            "dependencies": [],
+            "resources": [
+                {
+                    "name": "globalLibs",
+                    "location": "libs",
+                    "destination": {
+                        "provider": "RPM",
+                        "type": "lib"
+                    }
+                }
+            ],
+            "gst": "filesrc location=/home/sima/frankfurt_1280x720.mp4 ! qtdemux ! h264parse ! 'video/x-h264,parsed=true, stream-format=(string)byte-stream, alignment=(string)au',width=(int)[1,4096], height=(int)[1,4096]'! simaaidecoder sima-allocator-type=2 name='decoder' next-element='CVU' ! 'video/x-raw, format=(string)NV12, width=(int)1280, height=(int)720' ! tee name=source ! queue2 name=queue2_1 ! simaaiprocesscvu  name=simaaiprocesspreproc_1 ! simaaiprocessmla  name=simaaiprocessmla_1 ! simaaiboxdecode  name=simaaibox_decoder_1 ! 'application/vnd.simaai.tensor' ! simaai-overlay2  name=simaaioverlay_1 render-info='input::decoder,bbox::simaaibox_decoder_1 labels-file='/data/simaai/applications/pipeline4/share/overlay/labels.txt' ! 'video/x-raw,format=NV12,width=1280,height=720,framerate=30/1' ! simaaiencoder enc-bitrate=4000 name=simaai_encoder_1 ! h264parse ! rtph264pay ! udpsink host=192.168.1.33 port=9000 source. ! queue2 name=queue2_2 ! simaaioverlay_1. "
+        }
+    ],
+    "configuration": {
+        "installationPrefixes": {
+            "configurations": "/data/simaai/applications/pipeline4/etc",
+            "binaries": "/data/simaai/applications/pipeline4/bin",
+            "resources": "/data/simaai/applications/pipeline4/share",
+            "libraries": "/data/simaai/applications/pipeline4/lib",
+            "globalLibs": "/usr/lib"
+        },
+        "compilation": {
+            "copyPokyLibs": false
+        },
+        "gst": {
+            "options": [
+                "--gst-plugin-path=/data/simaai/applications/pipeline4/lib"
+            ]
+        },
+        "environment": [
+            "GST_DEBUG=0",
+            "LD_LIBRARY_PATH=/data/simaai/applications/pipeline4/lib"
+        ]
+    },
+    "manifestVersion": "2.0.0"
+}

@@ -518,10 +518,10 @@ Modify the 'gst' string:
 Compile the pipeline:
 
 ```shell
-mpk create --clean --board-type modalix -d ./yolov8x-p2_opt_4o_mpk_simaaisrc -s ./yolov8x-p2_opt_4o_mpk_simaaisrc
-mpk create --clean --board-type modalix -d ./yolov8x-p2_opt_4o_mpk_boxdecode -s ./yolov8x-p2_opt_4o_mpk_boxdecode
-mpk create --clean --board-type modalix -d ./yolov8x-p2_opt_4o_mpk_nv12 -s ./yolov8x-p2_opt_4o_mpk_nv12
-mpk create --clean --board-type modalix -d ./yolov8x-p2_opt_4o_mpk_overlay -s ./yolov8x-p2_opt_4o_mpk_overlay
+mpk create --clean --board-type modalix -d ./pipeline1 -s ./pipeline1
+mpk create --clean --board-type modalix -d ./pipeline2 -s ./pipeline2
+mpk create --clean --board-type modalix -d ./pipeline3 -s ./pipeline3
+mpk create --clean --board-type modalix -d ./pipeline4 -s ./pipeline4
 ```
 
 
@@ -529,16 +529,11 @@ mpk create --clean --board-type modalix -d ./yolov8x-p2_opt_4o_mpk_overlay -s ./
 Deploy
 
 ```shell
-mpk device connect -d devkit -u sima -p edgeai -t 192.168.1.21
-mpk deploy -f ./yolov8x-p2_opt_4o_mpk_simaaisrc/project.mpk -d devkit -t 192.168.1.21
-
-
-mpk device connect -d devkit -u sima -p edgeai -t 192.168.1.21
-mpk deploy -f ./yolov8x-p2_opt_4o_mpk_overlay/project.mpk -d devkit -t 192.168.1.21
-
-
-mpk device connect -d devkit -u sima -p edgeai -t 192.168.1.21
-mpk deploy -f ./yolov8x-p2_opt_4o_mpk_nv12/project.mpk -d devkit -t 192.168.1.21
+mpk device connect -d devkit -u sima -p edgeai -t 192.168.1.25
+mpk deploy -f ./pipeline1/project.mpk -d devkit -t 192.168.1.25
+mpk deploy -f ./pipeline2/project.mpk -d devkit -t 192.168.1.25
+mpk deploy -f ./pipeline3/project.mpk -d devkit -t 192.168.1.25
+mpk deploy -f ./pipeline4/project.mpk -d devkit -t 192.168.1.25
 ```
 
 

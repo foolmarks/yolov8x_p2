@@ -1,0 +1,102 @@
+{
+    "name": "pipeline1",
+    "appId": "pipeline1",
+    "sequence": 1,
+    "pipelines": [
+        {
+            "name": "pipeline1_Pipeline",
+            "sequence": 1,
+            "plugins": [
+                {
+                    "name": "simaaisrc_1",
+                    "pluginGid": "simaaisrc",
+                    "sequence": 1,
+                    "resources": {
+                        "configs": [
+                            "res/img5.rgb",
+                            "res/img3.rgb",
+                            "res/img1.rgb",
+                            "res/img2.rgb",
+                            "res/img4.rgb"
+                        ]
+                    }
+                },
+                {
+                    "name": "simaaiprocesspreproc_1",
+                    "pluginGid": "processcvu",
+                    "sequence": 2,
+                    "resources": {
+                        "configs": [
+                            "cfg/0_preproc.json"
+                        ]
+                    }
+                },
+                {
+                    "name": "simaaiprocessmla_1",
+                    "pluginGid": "processmla",
+                    "sequence": 3,
+                    "resources": {
+                        "configs": [
+                            "cfg/0_process_mla.json"
+                        ],
+                        "shared": [
+                            "res/yolov8x-p2_opt_4o_stage1_mla.elf"
+                        ]
+                    }
+                },
+                {
+                    "name": "simaaiprocessdetess_dequant_1",
+                    "pluginGid": "processcvu",
+                    "sequence": 4,
+                    "resources": {
+                        "configs": [
+                            "cfg/0_postproc.json"
+                        ]
+                    }
+                },
+                {
+                  "name": "simaai_yolov8xp2_postproc_overlay",
+                  "pluginGid": "yolov8xp2_postproc_overlay",
+                  "sequence" : 5
+                }
+            ],
+            "connections": [],
+            "meta": {
+                "groups": []
+            },
+            "dependencies": [],
+            "resources": [
+                {
+                    "name": "globalLibs",
+                    "location": "libs",
+                    "destination": {
+                        "provider": "RPM",
+                        "type": "lib"
+                    }
+                }
+            ],
+    "gst": "simaaisrc location=/data/simaai/applications/pipeline1/etc/img%d.rgb node-name=decoder delay=1000 mem-target=1 index=1 loop=true ! 'video/x-raw, format=(string)RGB, width=(int)640, height=(int)640' ! tee name=source ! queue2 ! simaaiprocesscvu  name=simaaiprocesspreproc_1 ! simaaiprocessmla  name=simaaiprocessmla_1 ! simaaiprocesscvu  name=simaaiprocessdetess_dequant_1 ! yolov8xp2_postproc_overlay  name='simaai_yolov8xp2_postproc_overlay' ! 'video/x-raw, format=(string)RGB, width=(int)640, height=(int)640' ! fakesink source. ! queue2 ! simaai_yolov8xp2_postproc_overlay. "        }
+    ],
+    "configuration": {
+        "installationPrefixes": {
+            "configurations": "/data/simaai/applications/pipeline1/etc",
+            "binaries": "/data/simaai/applications/pipeline1/bin",
+            "resources": "/data/simaai/applications/pipeline1/share",
+            "libraries": "/data/simaai/applications/pipeline1/lib",
+            "globalLibs": "/usr/lib"
+        },
+        "compilation": {
+            "copyPokyLibs": false
+        },
+        "gst": {
+            "options": [
+                "--gst-plugin-path=/data/simaai/applications/pipeline1/lib"
+            ]
+        },
+        "environment": [
+            "GST_DEBUG=0",
+            "LD_LIBRARY_PATH=/data/simaai/applications/pipeline1/lib"
+        ]
+    },
+    "manifestVersion": "2.0.0"
+}

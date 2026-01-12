@@ -1,0 +1,113 @@
+{
+    "name": "pipeline3",
+    "appId": "pipeline3",
+    "sequence": 1,
+    "pipelines": [
+        {
+            "name": "pipeline3_Pipeline",
+            "sequence": 1,
+            "plugins": [
+                {
+                    "name": "simaaisrc_1",
+                    "pluginGid": "simaaisrc",
+                    "sequence": 1,
+                    "resources": {
+                        "configs": [
+                            "res/img1.nv12",
+                            "res/img2.nv12",
+                            "res/img3.nv12",
+                            "res/img4.nv12",
+                            "res/img5.nv12"
+                        ]
+                    }
+                },
+                {
+                    "name": "simaaiprocesspreproc_1",
+                    "pluginGid": "processcvu",
+                    "sequence": 2,
+                    "resources": {
+                        "configs": [
+                            "cfg/0_preproc.json"
+                        ]
+                    }
+                },
+                {
+                    "name": "simaaiprocessmla_1",
+                    "pluginGid": "processmla",
+                    "sequence": 3,
+                    "resources": {
+                        "configs": [
+                            "cfg/0_process_mla.json"
+                        ],
+                        "shared": [
+                            "res/yolov8x-p2_opt_4o_stage1_mla.elf"
+                        ]
+                    }
+                },
+                {
+                    "name": "simaaibox_decoder_1",
+                    "pluginGid": "genericboxdecode",
+                    "sequence": 4,
+                    "resources": {
+                        "configs": [
+                            "cfg/0_boxdecoder.json"
+                        ]
+                    }
+                },
+                {
+                  "name": "simaaioverlay_1",
+                  "pluginGid": "overlay",
+                  "sequence": 5,
+                  "resources": {
+                    "binaries": [
+                      "res/labels.txt"
+                    ]
+                  }
+                },
+                {
+                  "name": "simaai_yolov8xp2_postproc_overlay",
+                  "pluginGid": "yolov8xp2_postproc_overlay",
+                  "sequence" : 6
+                }
+            ],
+            "connections": [],
+            "meta": {
+                "groups": []
+            },
+            "dependencies": [],
+            "resources": [
+                {
+                    "name": "globalLibs",
+                    "location": "libs",
+                    "destination": {
+                        "provider": "RPM",
+                        "type": "lib"
+                    }
+                }
+            ],
+            "gst": "simaaisrc location=/data/simaai/applications/pipeline3/etc/img%d.nv12 node-name=decoder delay=1000 mem-target=1 index=1 loop=true ! 'video/x-raw, format=(string)NV12, width=(int)640, height=(int)640' ! tee name=source ! queue2 name=queue2_1 ! simaaiprocesscvu  name=simaaiprocesspreproc_1 ! simaaiprocessmla  name=simaaiprocessmla_1 ! simaaiboxdecode  name=simaaibox_decoder_1 ! 'application/vnd.simaai.tensor' ! simaai-overlay2  name=simaaioverlay_1 render-info='input::decoder,bbox::simaaibox_decoder_1 labels-file='/data/simaai/applications/pipeline3/share/overlay/labels.txt' ! yolov8xp2_postproc_overlay  name='simaai_yolov8xp2_postproc_overlay' ! queue2 name=queue2_3 ! 'video/x-raw, format=(string)RGB, width=(int)640, height=(int)640' ! fakesink source. ! queue2 name=queue2_2 ! simaaioverlay_1. "
+        }
+    ],
+    "configuration": {
+        "installationPrefixes": {
+            "configurations": "/data/simaai/applications/pipeline3/etc",
+            "binaries": "/data/simaai/applications/pipeline3/bin",
+            "resources": "/data/simaai/applications/pipeline3/share",
+            "libraries": "/data/simaai/applications/pipeline3/lib",
+            "globalLibs": "/usr/lib"
+        },
+        "compilation": {
+            "copyPokyLibs": false
+        },
+        "gst": {
+            "options": [
+                "--gst-plugin-path=/data/simaai/applications/pipeline3/lib"
+            ]
+        },
+        "environment": [
+            "GST_DEBUG=0",
+            "LD_LIBRARY_PATH=/data/simaai/applications/pipeline3/lib"
+        ]
+    },
+    "manifestVersion": "2.0.0"
+}
