@@ -97,7 +97,7 @@ unzip test_images.zip
 
 ## Converting the PyTorch model to ONNX ##
 
-The starting point will be a trained PyTorch model - the model file (model.pt) is provided from [Google Drive](https://drive.google.com/file/d/1xXnEIUwK4isMbNv6ZDlpC614Om6v7ota/view?usp=sharing) or can be downloaded from its original [source repository](https://huggingface.co/davsolai/yolov8x-p2-coco).
+The starting point will be a trained PyTorch model - the model file (model.pt) is provided from [Google Drive](https://drive.google.com/file/d/1pJZdqmWI47KdmOyt6TQm2UQ2IlUNo580/view?usp=drive_link) or can be downloaded from its original [source repository](https://huggingface.co/davsolai/yolov8x-p2-coco).
 
 First, we will convert it to ONNX format:
 
@@ -309,7 +309,7 @@ The output in the console will be something like this:
 
 
 ```shell
-user@modelsdk88084ef7e7b:/home/docker/sima-cli$ python run_accelmode.py -hn 192.168.1.20
+user@modelsdk88084ef7e7b:/home/docker/sima-cli$ python run_accelmode.py -hn 192.168.1.25
 
 --------------------------------------------------
 Model SDK version 2.0.0
@@ -378,7 +378,7 @@ The model can be benchmarked on the target board. This uses random data to test 
 python ./get_fps/network_eval/network_eval.py \
     --model_file_path   ./build/yolov8x-p2_opt_4o/benchmark/yolov8x-p2_opt_4o_stage1_mla.elf \
     --mpk_json_path     ./build/yolov8x-p2_opt_4o/benchmark/yolov8x-p2_opt_4o_mpk.json \
-    --dv_host           192.168.1.21 \
+    --dv_host           192.168.1.25 \
     --image_size        640 640 3 \
     --verbose \
     --bypass_tunnel \
@@ -533,6 +533,8 @@ mpk device connect -d devkit -u sima -p edgeai -t 192.168.1.25
 mpk deploy -f ./pipeline1/project.mpk -d devkit -t 192.168.1.25
 mpk deploy -f ./pipeline2/project.mpk -d devkit -t 192.168.1.25
 mpk deploy -f ./pipeline3/project.mpk -d devkit -t 192.168.1.25
+
+mpk remove -t 192.168.1.25 -d devkit -a ai.sima.pipeline4
 mpk deploy -f ./pipeline4/project.mpk -d devkit -t 192.168.1.25
 ```
 

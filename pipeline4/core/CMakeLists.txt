@@ -1,6 +1,0 @@
-add_subdirectory(allocator)
-add_subdirectory(metadata)
-add_subdirectory(buffer-pool)
-add_subdirectory(simamm)
-add_subdirectory(caps)
-add_subdirectory(utils)
