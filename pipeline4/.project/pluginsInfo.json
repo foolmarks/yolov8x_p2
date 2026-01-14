@@ -1,0 +1,24 @@
+{
+    "pluginsInfo": [
+        {
+            "gid": "simaaisrc",
+            "path": "plugins/simaaisrc"
+        },
+        {
+            "gid": "processcvu",
+            "path": "plugins/processcvu"
+        },
+        {
+            "gid": "processmla",
+            "path": "plugins/processmla"
+        },
+        {
+            "gid" : "genericboxdecode",
+            "path" : "plugins/genericboxdecode"
+        },
+        {
+            "gid" : "overlay",
+            "path" : "plugins/overlay"
+        }
+    ]
+}

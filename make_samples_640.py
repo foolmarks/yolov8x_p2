@@ -32,8 +32,6 @@ import numpy as np
 # Constants
 # ---------------------------------------------------------------------------
 
-INPUT_W: int = 640
-INPUT_H: int = 640
 JPEG_QUALITY: int = 100
 IMAGE_EXTS = {".jpg", ".jpeg", ".png", ".bmp", ".tif", ".tiff", ".webp"}
 
@@ -44,7 +42,7 @@ IMAGE_EXTS = {".jpg", ".jpeg", ".png", ".bmp", ".tif", ".tiff", ".webp"}
 
 
 def letterbox_resize_bgr(
-    bgr_img: np.ndarray, target_w: int = INPUT_W, target_h: int = INPUT_H
+    bgr_img: np.ndarray, target_w: int = 640, target_h: int = 640
 ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
     """
     Letterbox-resize an HxWx3 **BGR** uint8 image to (target_h, target_w) with black padding.
@@ -184,25 +182,25 @@ def letterbox_resize_bgr(
     return bgr_padded, rgb_padded, np.ascontiguousarray(nv12_padded)
 
 
-def letterbox_resize_color(
-    rgb_img: np.ndarray, target_w: int = INPUT_W, target_h: int = INPUT_H
-) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
-    """
-    Backward-compatible wrapper:
-    Letterbox-resize an HxWx3 **RGB** uint8 image to (target_h, target_w) with black padding.
-
-    Returns:
-        bgr_padded:  (target_h, target_w, 3) uint8, BGR order
-        rgb_padded:  (target_h, target_w, 3) uint8, RGB order
-        nv12_padded: (target_h*3//2, target_w) uint8, NV12 (Y + interleaved UV)
-    """
-    if rgb_img.ndim != 3 or rgb_img.shape[-1] != 3:
-        raise ValueError(f"Expected HxWx3 RGB; got shape {rgb_img.shape}")
-    if rgb_img.dtype != np.uint8:
-        raise TypeError(f"Expected uint8 RGB image; got dtype {rgb_img.dtype}")
-
-    bgr = np.ascontiguousarray(rgb_img[..., ::-1])
-    return letterbox_resize_bgr(bgr, target_w, target_h)
+# def letterbox_resize_color(
+#    rgb_img: np.ndarray, target_w: int = 640, target_h: int = 640
+# ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+#    """
+#    Backward-compatible wrapper:
+#    Letterbox-resize an HxWx3 **RGB** uint8 image to (target_h, target_w) with black padding.
+#
+#    Returns:
+#        bgr_padded:  (target_h, target_w, 3) uint8, BGR order
+#        rgb_padded:  (target_h, target_w, 3) uint8, RGB order
+#        nv12_padded: (target_h*3//2, target_w) uint8, NV12 (Y + interleaved UV)
+#    """
+#    if rgb_img.ndim != 3 or rgb_img.shape[-1] != 3:
+#        raise ValueError(f"Expected HxWx3 RGB; got shape {rgb_img.shape}")
+#    if rgb_img.dtype != np.uint8:
+#        raise TypeError(f"Expected uint8 RGB image; got dtype {rgb_img.dtype}")
+#
+#    bgr = np.ascontiguousarray(rgb_img[..., ::-1])
+#    return letterbox_resize_bgr(bgr, target_w, target_h)
 
 
 # ---------------------------------------------------------------------------
@@ -241,11 +239,13 @@ def save_letterboxed_from_folder(
     indir: Path,
     outdir: Path,
     prefix: str,
+    target_width: int,
+    target_height: int,
     num_images: int,
     jpeg_quality: int = JPEG_QUALITY,
 ) -> Tuple[int, int]:
     """
-    Read images from 'indir', letterbox-resize to 640x640, and save outputs into a freshly
+    Read images from 'indir', letterbox-resize and save outputs into a freshly
     created 'outdir' using the given filename 'prefix' and no zero padding.
 
     For each processed image, this function writes:
@@ -288,24 +288,14 @@ def save_letterboxed_from_folder(
             continue
 
         # Avoidable channel swaps fixed: call BGR-native letterbox directly
-        bgr_out, rgb_out, nv12_out = letterbox_resize_bgr(bgr_in, INPUT_W, INPUT_H)
+        bgr_out, rgb_out, nv12_out = letterbox_resize_bgr(
+            bgr_in, target_width, target_height
+        )
 
         logging.info(
             f"letterbox outputs for {p.name}: "
             f"bgr_out={bgr_out.shape}, rgb_out={rgb_out.shape}, nv12_out={nv12_out.shape}"
         )
-
-        # Validate output shapes before writing
-        if rgb_out.shape != (INPUT_H, INPUT_W, 3) or rgb_out.dtype != np.uint8:
-            logging.error(
-                f"Bad RGB output for {p.name}: shape={rgb_out.shape}, dtype={rgb_out.dtype}"
-            )
-            continue
-        if nv12_out.shape != (INPUT_H * 3 // 2, INPUT_W) or nv12_out.dtype != np.uint8:
-            logging.error(
-                f"Bad NV12 output for {p.name}: shape={nv12_out.shape}, dtype={nv12_out.dtype}"
-            )
-            continue
 
         # Write JPEG (BGR)
         jpg_path = outdir / f"{prefix}{i + 1}.jpg"  # no leading zeros
@@ -341,44 +331,58 @@ def save_letterboxed_from_folder(
 
 
 def build_argparser() -> argparse.ArgumentParser:
-    p = argparse.ArgumentParser(
-        description="Read images from a folder, letterbox-resize to 640x640, and save as JPEG + raw RGB + raw NV12."
+    args = argparse.ArgumentParser(
+        description="Read images from a folder, letterbox-resize to and save as JPEG + raw RGB + raw NV12."
     )
-    p.add_argument(
+    args.add_argument(
         "-i",
         "--indir",
         default="./test_images",
         help="Input folder with images (default: ./test_images)",
     )
-    p.add_argument(
+    args.add_argument(
         "-o",
         "--outdir",
         default="./build/samples_640",
         help="Output directory (default: ./build/samples_640)",
     )
-    p.add_argument(
+    args.add_argument(
         "--prefix", default="img", help="Filename prefix for outputs (default: img)"
     )
-    p.add_argument(
+    args.add_argument(
+        "-tw",
+        "--target_width",
+        type=int,
+        default=640,
+        help="Target width (default: 640)",
+    )
+    args.add_argument(
+        "-th",
+        "--target_height",
+        type=int,
+        default=640,
+        help="Target height (default: 640)",
+    )
+    args.add_argument(
         "-m",
         "--num_images",
         type=int,
         default=5,
         help="Max number of images to process (default: 5)",
     )
-    p.add_argument(
+    args.add_argument(
         "--quality",
         type=int,
         default=JPEG_QUALITY,
         help=f"JPEG quality (default: {JPEG_QUALITY})",
     )
-    p.add_argument(
+    args.add_argument(
         "--log",
         default="INFO",
         choices=["DEBUG", "INFO", "WARNING", "ERROR"],
         help="Log level (default: INFO)",
     )
-    return p
+    return args
 
 
 def main() -> None:
@@ -398,6 +402,8 @@ def main() -> None:
         indir=indir,
         outdir=outdir,
         prefix=args.prefix,
+        target_width=args.target_width,
+        target_height=args.target_height,
         num_images=args.num_images,
         jpeg_quality=args.quality,
     )

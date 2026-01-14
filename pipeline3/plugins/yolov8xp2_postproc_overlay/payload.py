@@ -27,17 +27,17 @@ from gi.repository import GObject, Gst
 #   DEBUG   = 7   # Debug-level messages (mapped to DEBUG)
 logger.set_level(LogLevel.INFO)
 
-H, W, C = 640, 640, 3
+H, W, C = 720, 1280, 3
 
 
 plugin_name = "yolov8xp2_postproc_overlay"  # define PLUGIN_NAME HERE
 
-out_size = int(H * W * 3)  # outsize of plugin in bytes
+out_size = int(H * W * C)  # outsize of plugin in bytes
 
 
 class MyPlugin(AggregatorTemplate):
     def __init__(self):
-        self.out_size = int(640 * 640 * 3)  # outsize of plugin in bytes
+        self.out_size = int(1280 * 720 * 3)  # outsize of plugin in bytes
         super(MyPlugin, self).__init__(
             plugin_name=plugin_name, out_size=out_size, next_metaparser=False
         )

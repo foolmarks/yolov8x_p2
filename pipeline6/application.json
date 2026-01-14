@@ -1,0 +1,94 @@
+{
+    "name": "pipeline6",
+    "appId": "pipeline6",
+    "sequence": 1,
+    "pipelines": [
+        {
+            "name": "pipeline6_Pipeline",
+            "sequence": 1,
+            "plugins": [
+                {
+                    "name": "simaaiprocesspreproc_1",
+                    "pluginGid": "processcvu",
+                    "sequence": 2,
+                    "resources": {
+                        "configs": [
+                            "cfg/0_preproc.json"
+                        ]
+                    }
+                },
+                {
+                    "name": "simaaiprocessmla_1",
+                    "pluginGid": "processmla",
+                    "sequence": 3,
+                    "resources": {
+                        "configs": [
+                            "cfg/0_process_mla.json"
+                        ],
+                        "shared": [
+                            "res/yolov8x-p2_opt_4o_stage1_mla.elf"
+                        ]
+                    }
+                },
+                {
+                    "name": "simaaibox_decoder_1",
+                    "pluginGid": "genericboxdecode",
+                    "sequence": 4,
+                    "resources": {
+                        "configs": [
+                            "cfg/0_boxdecoder.json"
+                        ]
+                    }
+                },
+                {
+                  "name": "simaaioverlay_1",
+                  "pluginGid": "overlay",
+                  "sequence": 5,
+                  "resources": {
+                    "binaries": [
+                      "res/labels.txt"
+                    ]
+                  }
+                }
+            ],
+            "connections": [],
+            "meta": {
+                "groups": []
+            },
+            "dependencies": [],
+            "resources": [
+                {
+                    "name": "globalLibs",
+                    "location": "libs",
+                    "destination": {
+                        "provider": "RPM",
+                        "type": "lib"
+                    }
+                }
+            ],
+            "gst": "rtspsrc location=rtsp://192.168.1.13:8080/h264_ulaw.sdp ! rtph264depay wait-for-keyframe=true ! h264parse ! 'video/x-h264,parsed=true, stream-format=(string)byte-stream, alignment=(string)au',width=(int)[1,4096], height=(int)[1,4096]' ! simaaidecoder sima-allocator-type=2 name='decoder' ! tee name=source ! queue2 name=queue2_1 ! simaaiprocesscvu  name=simaaiprocesspreproc_1 ! simaaiprocessmla  name=simaaiprocessmla_1 ! simaaiboxdecode  name=simaaibox_decoder_1 ! 'application/vnd.simaai.tensor' ! simaai-overlay2  name=simaaioverlay_1 render-info='input::decoder,bbox::simaaibox_decoder_1 labels-file='/data/simaai/applications/pipeline6/share/overlay/labels.txt' ! simaaiencoder enc-fmt=NV12 enc-bitrate=5000 name=encoder ! h264parse ! rtph264pay ! udpsink host=192.168.1.24 port=9000 source. ! queue2 name=queue2_2 ! simaaioverlay_1. "
+        }
+    ],
+    "configuration": {
+        "installationPrefixes": {
+            "configurations": "/data/simaai/applications/pipeline6/etc",
+            "binaries": "/data/simaai/applications/pipeline6/bin",
+            "resources": "/data/simaai/applications/pipeline6/share",
+            "libraries": "/data/simaai/applications/pipeline6/lib",
+            "globalLibs": "/usr/lib"
+        },
+        "compilation": {
+            "copyPokyLibs": false
+        },
+        "gst": {
+            "options": [
+                "--gst-plugin-path=/data/simaai/applications/pipeline6/lib"
+            ]
+        },
+        "environment": [
+            "GST_DEBUG=0",
+            "LD_LIBRARY_PATH=/data/simaai/applications/pipeline6/lib"
+        ]
+    },
+    "manifestVersion": "2.0.0"
+}
