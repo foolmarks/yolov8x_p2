@@ -524,6 +524,7 @@ mpk create --clean --board-type modalix -d ./pipeline3 -s ./pipeline3
 mpk create --clean --board-type modalix -d ./pipeline4 -s ./pipeline4
 mpk create --clean --board-type modalix -d ./pipeline5 -s ./pipeline5
 mpk create --clean --board-type modalix -d ./pipeline6 -s ./pipeline6
+mpk create --clean --board-type modalix -d ./pipeline7 -s ./pipeline7
 ```
 
 
@@ -532,14 +533,16 @@ Deploy
 
 ```shell
 mpk device connect -d devkit -u sima -p edgeai -t 192.168.1.25
+
 mpk deploy -f ./pipeline1/project.mpk -d devkit -t 192.168.1.25
 mpk deploy -f ./pipeline2/project.mpk -d devkit -t 192.168.1.25
 mpk deploy -f ./pipeline3/project.mpk -d devkit -t 192.168.1.25
 mpk deploy -f ./pipeline4/project.mpk -d devkit -t 192.168.1.25
 mpk deploy -f ./pipeline5/project.mpk -d devkit -t 192.168.1.25
-
-mpk remove -t 192.168.1.25 -d devkit -a ai.sima.pipeline6
 mpk deploy -f ./pipeline6/project.mpk -d devkit -t 192.168.1.25
+
+mpk remove -t 192.168.1.25 -d devkit -a ai.sima.pipeline7
+mpk deploy -f ./pipeline7/project.mpk -d devkit -t 192.168.1.25
 ```
 
 
