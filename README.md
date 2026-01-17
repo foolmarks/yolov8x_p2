@@ -427,9 +427,7 @@ sima-cli sdk mpk
 ```
 
 
-
-
-Make the baseline pipeline:
+Make the baseline GStreamer pipeline:
 
 ```shell
 mpk project create --model-path ./build/yolov8x-p2_opt_4o/yolov8x-p2_opt_4o_mpk.tar.gz --src-plugin simaaisrc --input-resource ./build/samples_640/img%d.rgb --input-width 640 --input-height 640 --input-img-type RGB
