@@ -41,6 +41,7 @@ class MyPlugin(AggregatorTemplate):
         super(MyPlugin, self).__init__(
             plugin_name=plugin_name, out_size=out_size, next_metaparser=False
         )
+        self.output_index = 0
 
     def nv12_to_bgr(self, nv12: np.ndarray, width: int, height: int) -> np.ndarray:
         """
@@ -101,9 +102,11 @@ class MyPlugin(AggregatorTemplate):
         image = self.nv12_to_bgr(image, width=W, height=H)
 
         # write file
-        ok = cv2.imwrite("/tmp/output.png", image)
+        output_path = f"/tmp/{self.output_index}.png"
+        ok = cv2.imwrite(output_path, image)
         if ok:
-            logger.info("Wrote PNG file to /tmp/output.png")
+            logger.info("Wrote PNG file to %s", output_path)
+        self.output_index = (self.output_index + 1) % 10
 
         # output to fakesink
         data = image.flatten().tobytes()

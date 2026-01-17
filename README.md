@@ -97,16 +97,16 @@ unzip test_images.zip
 
 ## Converting the PyTorch model to ONNX ##
 
-The starting point will be a trained PyTorch model - the model file (model.pt) is provided from [Google Drive](https://drive.google.com/file/d/1pJZdqmWI47KdmOyt6TQm2UQ2IlUNo580/view?usp=drive_link) or can be downloaded from its original [source repository](https://huggingface.co/davsolai/yolov8x-p2-coco).
+The starting point will be a trained ONNX model - the model file (yolov8x-p2.onnx) is provided from [Google Drive](https://drive.google.com/file/d/1rFa923GeVE91kRmxRZpWEzurWC2V5COV/view?usp=sharing) or the trained PyTorch model (model.pt) can be downloaded from its original [source repository](https://huggingface.co/davsolai/yolov8x-p2-coco).
 
-First, we will convert it to ONNX format:
+If you use the PyTorch model, it will need to be converted to ONNX format:
 
 ```shell
 pip install ultralytics
 python export2onnx.py
 ```
 
- ..the output from this will be an ONNX model called 'yolov8x-p2.onnx'
+
 
 
 ## Execute The Original Floating-Point ONNX model ##
@@ -318,44 +318,42 @@ Model SDK version 2.0.0
 Annotated images will be written to /home/docker/sima-cli/build/accel_pred
 Loading yolov8x-p2_opt_4o quantized model from build/yolov8x-p2_opt_4o
 Using 10 out of 10  test images
-Processing image: 000000006894.jpg
-Processing image: 000000019221.jpg
-Processing image: 000000022589.jpg
-Processing image: 000000032941.jpg
-Processing image: 000000048504.jpg
-Processing image: 000000572408.jpg
-Processing image: 000000573626.jpg
-Processing image: 000000574520.jpg
-Processing image: 000000577735.jpg
-Processing image: 000000581062.jpg
+Processing image: 000000031534.jpg
+Processing image: 000000054338.jpg
+Processing image: 000000087711.jpg
+Processing image: 000000172700.jpg
+Processing image: 000000221207.jpg
+Processing image: 000000366228.jpg
+Processing image: 000000390786.jpg
+Processing image: 000000391007.jpg
+Processing image: 000000488779.jpg
+Processing image: 000000546225.jpg
 Compiling model yolov8x-p2_opt_4o to .elf file
 Creating the Forwarding from host
 Copying the model files to DevKit
 Creating the Forwarding from host
 ZMQ Connection successful.
 Executing model graph in accelerator mode:
-Progress: |██████████████████████████████| 100.0% 10|10 Complete.  10/10
-Model is executed in accelerator mode.
+  Detections: 6
+  Annotated image written to: /home/docker/sima-cli/build/accel_pred/000000031534.jpg
   Detections: 2
-  Annotated image written to: /home/docker/sima-cli/build/accel_pred/000000006894.jpg
-  Detections: 2
-  Annotated image written to: /home/docker/sima-cli/build/accel_pred/000000019221.jpg
-  Detections: 2
-  Annotated image written to: /home/docker/sima-cli/build/accel_pred/000000022589.jpg
-  Detections: 12
-  Annotated image written to: /home/docker/sima-cli/build/accel_pred/000000032941.jpg
-  Detections: 4
-  Annotated image written to: /home/docker/sima-cli/build/accel_pred/000000048504.jpg
-  Detections: 4
-  Annotated image written to: /home/docker/sima-cli/build/accel_pred/000000572408.jpg
+  Annotated image written to: /home/docker/sima-cli/build/accel_pred/000000054338.jpg
+  Detections: 3
+  Annotated image written to: /home/docker/sima-cli/build/accel_pred/000000087711.jpg
   Detections: 1
-  Annotated image written to: /home/docker/sima-cli/build/accel_pred/000000573626.jpg
+  Annotated image written to: /home/docker/sima-cli/build/accel_pred/000000172700.jpg
+  Detections: 1
+  Annotated image written to: /home/docker/sima-cli/build/accel_pred/000000221207.jpg
   Detections: 2
-  Annotated image written to: /home/docker/sima-cli/build/accel_pred/000000574520.jpg
+  Annotated image written to: /home/docker/sima-cli/build/accel_pred/000000366228.jpg
+  Detections: 4
+  Annotated image written to: /home/docker/sima-cli/build/accel_pred/000000390786.jpg
   Detections: 2
-  Annotated image written to: /home/docker/sima-cli/build/accel_pred/000000577735.jpg
+  Annotated image written to: /home/docker/sima-cli/build/accel_pred/000000391007.jpg
   Detections: 2
-  Annotated image written to: /home/docker/sima-cli/build/accel_pred/000000581062.jpg
+  Annotated image written to: /home/docker/sima-cli/build/accel_pred/000000488779.jpg
+  Detections: 6
+  Annotated image written to: /home/docker/sima-cli/build/accel_pred/000000546225.jpg
 ```
 
 
@@ -370,7 +368,7 @@ The evaluation of the compiled model generates images annotated with bounding bo
 
 ## Benchmarking model on hardware ##
 
-The model can be benchmarked on the target board. This uses random data to test the throughput - note that this only tests the MLA throughput.
+The model can be benchmarked on the target board. This uses random data to test the throughput - note that this only tests the MLA throughput, it does not include pre and post-processing.
 
 
 
@@ -378,7 +376,7 @@ The model can be benchmarked on the target board. This uses random data to test 
 python ./get_fps/network_eval/network_eval.py \
     --model_file_path   ./build/yolov8x-p2_opt_4o/benchmark/yolov8x-p2_opt_4o_stage1_mla.elf \
     --mpk_json_path     ./build/yolov8x-p2_opt_4o/benchmark/yolov8x-p2_opt_4o_mpk.json \
-    --dv_host           192.168.1.25 \
+    --dv_host           <target_ip_address> \
     --image_size        640 640 3 \
     --verbose \
     --bypass_tunnel \
@@ -405,7 +403,6 @@ FPS = 109
 Ran 100 frame(s)
 ```
 
-Note that this is the throughput of only the MLA (i.e. the modified YoloV8x_p2 model), it does not include any pre or post-processing.
 
 
 ## Building the GStreamer Pipeline ##
@@ -413,7 +410,7 @@ Note that this is the throughput of only the MLA (i.e. the modified YoloV8x_p2 m
 Make sample images that can be used with the simaaisrc plugin:
 
 ```shell
-python make_samples_640.py
+python make_samples.py
 ```
 
 
@@ -506,7 +503,7 @@ Open 'application.json' and add the following into the "plugins" section of the 
 ```
 
 
-Modify the 'gst' string:
+Modify the 'gst' string and save the file:
 
 
 ```shell
@@ -514,35 +511,101 @@ Modify the 'gst' string:
 ```
 
 
-
 Compile the pipeline:
 
 ```shell
-mpk create --clean --board-type modalix -d ./pipeline1 -s ./pipeline1
-mpk create --clean --board-type modalix -d ./pipeline2 -s ./pipeline2
-mpk create --clean --board-type modalix -d ./pipeline3 -s ./pipeline3
-mpk create --clean --board-type modalix -d ./pipeline4 -s ./pipeline4
-mpk create --clean --board-type modalix -d ./pipeline5 -s ./pipeline5
-mpk create --clean --board-type modalix -d ./pipeline6 -s ./pipeline6
-mpk create --clean --board-type modalix -d ./pipeline7 -s ./pipeline7
+mpk create --clean --board-type modalix -d ./yolov8x-p2_opt_4o_mpk_simaaisrc -s ./yolov8x-p2_opt_4o_mpk_simaaisrc
+```
+
+Connect to the target board (target board must be connected to host via ethernet):
+
+```shell
+mpk device connect -d devkit -u sima -p edgeai -t <target_ip_address>
+```
+
+
+Deploy the pipeline:
+
+```shell
+mpk deploy -f ./yolov8x-p2_opt_4o_mpk_simaaisrc/project.mpk -d devkit -t <target_ip_address>
+```
+
+
+The pipeline can be killed and removed from the target board like this:
+
+```shell
+mpk remove -t <target_ip_address> -d devkit -a ai.sima.yolov8x-p2_opt_4o_mpk_simaaisrc
 ```
 
 
 
-Deploy
+## Example Pipelines ##
+
+There are a number of example pipelines based on the YoloV8x_p2 model:
+
+
+### pipeline1 ###
+
+Uses the simaaisrc plugin to drive image files into the pipeline. The image files are in RGB format (created by make_samples.py) and have dimensions of 640 x 640 x 3 to match the YoloV8 model input. There is a custom Python plugin (yolov8xp2_postproc_overlay) which is responsible for decoding the model output, overlaying the boxes onto the original image and then wrting the images as PNG files into the /tmp folder on the target board.
+
 
 ```shell
-mpk device connect -d devkit -u sima -p edgeai -t 192.168.1.25
+mpk create --clean --board-type modalix -d ./pipeline1 -s ./pipeline1
+mpk device connect -d devkit -u sima -p edgeai -t <target_ip_address>
+mpk deploy -f ./pipeline1/project.mpk -d devkit -t <target_ip_address>
+mpk remove -t <target_ip_address> -d devkit -a ai.sima.pipeline1
+```
 
-mpk deploy -f ./pipeline1/project.mpk -d devkit -t 192.168.1.25
-mpk deploy -f ./pipeline2/project.mpk -d devkit -t 192.168.1.25
-mpk deploy -f ./pipeline3/project.mpk -d devkit -t 192.168.1.25
-mpk deploy -f ./pipeline4/project.mpk -d devkit -t 192.168.1.25
-mpk deploy -f ./pipeline5/project.mpk -d devkit -t 192.168.1.25
-mpk deploy -f ./pipeline6/project.mpk -d devkit -t 192.168.1.25
 
-mpk remove -t 192.168.1.25 -d devkit -a ai.sima.pipeline7
-mpk deploy -f ./pipeline7/project.mpk -d devkit -t 192.168.1.25
+### pipeline3 ###
+
+Uses the simaaisrc plugin to drive image files into the pipeline. The image files are in NV12 format (created by make_samples.py) and have dimensions of 1280 x 720 and are resized to 640 x 640 and converted to RGB by the preprocessing to match the YoloV8 model input. The box decoding and NMS is done by the boxdecoder plugig. The overlay plugin is responsible for annotating the bounding boxes onto the original image. There is a custom Python plugin (yolov8xp2_postproc_overlay) which is responsible for writing the annotated images as PNG files into the /tmp folder on the target board.
+
+
+```shell
+mpk create --clean --board-type modalix -d ./pipeline3 -s ./pipeline3
+mpk device connect -d devkit -u sima -p edgeai -t <target_ip_address>
+mpk deploy -f ./pipeline3/project.mpk -d devkit -t <target_ip_address>
+mpk remove -t <target_ip_address> -d devkit -a ai.sima.pipeline3
+```
+
+
+### pipeline4 ###
+
+Uses the simaaisrc plugin to drive image files into the pipeline. The image files are in NV12 format (created by make_samples.py) and have dimensions of 1280 x 720 and are resized to 640 x 640 and converted to RGB by the preprocessing to match the YoloV8 model input. The box decoding and NMS is done by the boxdecoder plugig. The overlay plugin is responsible for annotating the bounding boxes onto the original image. There is a custom Python plugin (yolov8xp2_postproc_overlay) which is responsible for writing the annotated images as PNG files into the /tmp folder on the target board. Frames with annotated boxes are H.264 encoded with the on-chip encoder then passed out via UDP. The user must modify the host IP address and port number in the application.json file before compiling.
+
+
+```shell
+mpk create --clean --board-type modalix -d ./pipeline4 -s ./pipeline4
+mpk device connect -d devkit -u sima -p edgeai -t <target_ip_address>
+mpk deploy -f ./pipeline4/project.mpk -d devkit -t <target_ip_address>
+mpk remove -t <target_ip_address> -d devkit -a ai.sima.pipeline4
+```
+
+
+### pipeline5 ###
+
+Uses the filesrc plugin to drive an 1280x720 .mp4 video file into the pipeline. The frames are decoded by the on-chip decoder then resized to 640 x 640 and converted to RGB by the preprocessing to match the YoloV8 model input. The box decoding and NMS is done by the boxdecoder plugig. The overlay plugin is responsible for annotating the bounding boxes onto the original image. Frames with annotated boxes are H.264 encoded with the on-chip encoder then passed out via UDP. The user must modify the host IP address and port number in the application.json file before compiling.
+
+
+```shell
+mpk create --clean --board-type modalix -d ./pipeline5 -s ./pipeline5
+mpk device connect -d devkit -u sima -p edgeai -t <target_ip_address>
+mpk deploy -f ./pipeline5/project.mpk -d devkit -t <target_ip_address>
+mpk remove -t <target_ip_address> -d devkit -a ai.sima.pipeline5
+```
+
+
+### pipeline6 ###
+
+Uses the rtspsrc plugin to drive RTSP stream into the pipeline. The frames are decoded by the on-chip decoder then resized to 640 x 640 and converted to RGB by the preprocessing to match the YoloV8 model input. The box decoding and NMS is done by the boxdecoder plugig. The overlay plugin is responsible for annotating the bounding boxes onto the original image. Frames with annotated boxes are H.264 encoded with the on-chip encoder then passed out via UDP. The user must modify the RTSP URL, host IP address and port number in the application.json file before compiling.
+
+
+```shell
+mpk create --clean --board-type modalix -d ./pipeline6 -s ./pipeline6
+mpk device connect -d devkit -u sima -p edgeai -t <target_ip_address>
+mpk deploy -f ./pipeline6/project.mpk -d devkit -t <target_ip_address>
+mpk remove -t <target_ip_address> -d devkit -a ai.sima.pipeline6
 ```
 
 
@@ -559,8 +622,9 @@ mpk deploy -f ./pipeline7/project.mpk -d devkit -t 192.168.1.25
 * get_fps - scripts for benchmarking
 * calib_images.zip - images for calibration
 * test_images.zip - images for testing
-* start.py - start docker container
-* stop.py stop docker container
+* make_samples.py - make sample files for use with simaaisrc plugin
+* utils.py - utilities & helper functions
+* pipeline1 to pipeline6 - example pipelines
 
 ## Acknowledgements
 

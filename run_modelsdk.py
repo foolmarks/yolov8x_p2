@@ -258,7 +258,7 @@ def implement(args):
         any_shape_on_mla=False,
         automatic_layout_conversion=False,
         model_name=output_model_name,
-        log_level=logging.INFO,
+        log_level=logging.WARN,
     )
 
     # optional save of quantized model - saved model can be opened with Netron
@@ -294,23 +294,21 @@ def implement(args):
                     print(f"  WARNING: Could not read image, skipping: {img_path}")
                     continue
 
-                orig_h, orig_w = img_bgr.shape[:2]
-
                 inputs[input_name], bgr_640 = utils.preprocess_image(
                     img_bgr, do_transpose=False
                 )
 
                 """
-            Returns a list of np arrays
-            (1, 160, 160, 64)
-            (1, 80, 80, 64)
-            (1, 40, 40, 64)
-            (1, 20, 20, 64)
-            (1, 160, 160, 80)
-            (1, 80, 80, 80)
-            (1, 40, 40, 80)
-            (1, 20, 20, 80)
-            """
+                Returns a list of np arrays
+                (1, 160, 160, 64)
+                (1, 80, 80, 64)
+                (1, 40, 40, 64)
+                (1, 20, 20, 64)
+                (1, 160, 160, 80)
+                (1, 80, 80, 80)
+                (1, 40, 40, 80)
+                (1, 20, 20, 80)
+                """
                 quantized_net_output = quant_model.execute(inputs, fast_mode=True)
 
                 # Postprocess in 640x640 space
@@ -329,6 +327,7 @@ def implement(args):
                     print(f"  Detections: {boxes_640.shape[0]}")
 
                 # Scale boxes back to original image size
+                # orig_h, orig_w = img_bgr.shape[:2]
                 # boxes_orig = utils.scale_boxes_to_original(boxes_640, orig_w, orig_h)
                 # annotated = utils.draw_detections(
                 #    img_bgr.copy(), boxes_orig, scores, class_ids, utils.COCO_CLASSES
@@ -414,8 +413,8 @@ def run_main():
         "-ci",
         "--num_calib_images",
         type=int,
-        default=20,
-        help="Number of calibration images. Default is 20",
+        default=150,
+        help="Number of calibration images. Default is 150",
     )
     ap.add_argument(
         "-ti",
@@ -474,10 +473,10 @@ def run_main():
         help="Use BlockFloat16 quantization. If not set, quant_bits argument is used",
     )
     ap.add_argument(
-        "-ct", "--conf_thres", type=float, default=0.45, help="Confidence threshold"
+        "-ct", "--conf_thres", type=float, default=0.50, help="Confidence threshold"
     )
     ap.add_argument(
-        "-it", "--iou_thres", type=float, default=0.45, help="IoU threshold for NMS"
+        "-it", "--iou_thres", type=float, default=0.50, help="IoU threshold for NMS"
     )
     args = ap.parse_args()
 

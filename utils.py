@@ -298,7 +298,7 @@ def preprocess_image(img_bgr: np.ndarray, do_transpose: bool = True) -> np.ndarr
         pad_left,
         pad_right,
         borderType=cv2.BORDER_CONSTANT,
-        value=(0, 0, 0),
+        value=(114, 114, 114),
     )
 
     # BGR -> RGB

@@ -134,10 +134,10 @@ def run_main():
         help="Path to output folder for annotated images",
     )
     ap.add_argument(
-        "--conf_thres", type=float, default=0.45, help="Confidence threshold"
+        "--conf_thres", type=float, default=0.50, help="Confidence threshold"
     )
     ap.add_argument(
-        "--iou_thres", type=float, default=0.45, help="IoU threshold for NMS"
+        "--iou_thres", type=float, default=0.50, help="IoU threshold for NMS"
     )
     args = ap.parse_args()
 

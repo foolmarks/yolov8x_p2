@@ -43,6 +43,7 @@ class MyPlugin(AggregatorTemplate):
         super(MyPlugin, self).__init__(
             plugin_name=plugin_name, out_size=out_size, next_metaparser=False
         )
+        self.output_index = 0
 
         self.model_outs = [
             (1, 160, 160, 64),
@@ -55,8 +56,8 @@ class MyPlugin(AggregatorTemplate):
             (1, 20, 20, 80),
         ]
 
-        self.conf_thres = 0.45
-        self.iou_thres = 0.45
+        self.conf_thres = 0.50
+        self.iou_thres = 0.50
 
     def get_model_outputs(self, input_buffer):
         start = 0
@@ -119,9 +120,11 @@ class MyPlugin(AggregatorTemplate):
         )
 
         # write file
-        ok = cv2.imwrite("/tmp/output.png", annotated)
+        output_path = f"/tmp/{self.output_index}.png"
+        ok = cv2.imwrite(output_path, annotated)
         if ok:
-            logger.info("Wrote PNG file to /tmp/output.png")
+            logger.info("Wrote PNG file to %s", output_path)
+        self.output_index = (self.output_index + 1) % 10
 
         # output to fakesink
         data = annotated.flatten().tobytes()

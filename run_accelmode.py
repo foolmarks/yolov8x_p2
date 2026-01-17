@@ -220,14 +220,14 @@ def run_main():
         "-hn",
         "--hostname",
         type=str,
-        default="192.168.1.21",
-        help="Target device IP address. Default is 192.168.1.21",
+        default="192.168.1.25",
+        help="Target device IP address. Default is 192.168.1.25",
     )
     ap.add_argument(
-        "-ct", "--conf_thres", type=float, default=0.45, help="Confidence threshold"
+        "-ct", "--conf_thres", type=float, default=0.50, help="Confidence threshold"
     )
     ap.add_argument(
-        "-it", "--iou_thres", type=float, default=0.45, help="IoU threshold for NMS"
+        "-it", "--iou_thres", type=float, default=0.50, help="IoU threshold for NMS"
     )
     args = ap.parse_args()
 

@@ -13,11 +13,16 @@
                     "sequence": 1,
                     "resources": {
                         "configs": [
-                            "res/img5.rgb",
-                            "res/img3.rgb",
                             "res/img1.rgb",
                             "res/img2.rgb",
-                            "res/img4.rgb"
+                            "res/img3.rgb",
+                            "res/img4.rgb",
+                            "res/img5.rgb",
+                            "res/img6.rgb",
+                            "res/img7.rgb",
+                            "res/img8.rgb",
+                            "res/img9.rgb",
+                            "res/img10.rgb"
                         ]
                     }
                 },

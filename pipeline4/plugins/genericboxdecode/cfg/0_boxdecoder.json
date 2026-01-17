@@ -22,8 +22,8 @@
     }
   },
   "decode_type": "yolov8",
-  "detection_threshold": 0.45,
-  "nms_iou_threshold": 0.45,
+  "detection_threshold": 0.50,
+  "nms_iou_threshold": 0.50,
   "topk": 24,
   "num_classes": 80,
   "channel_of_interest": 0,
