@@ -1,8 +1,5 @@
 # YoloV8x_p2 Object Detection #
 
-# WORK IN PROGRESS! #
-
-### Add a section here for required environment, tools, etc ###
 
 
 This tutorial demonstrates the following steps:
@@ -12,7 +9,7 @@ This tutorial demonstrates the following steps:
   * Evaluation of the quantized model.
   * Benchmarking of the compiled model.
   * Executing a compiled model on a hardware platform.
-  * Building a GStreamer pipeline with USB camera input.
+  * Building a GStreamer pipeline.
 
 
 YOLOv8x uses three detection heads on feature maps P3, P4, P5, corresponding to strides 8, 16 and 32 (so for a 640×640 input you get 80×80, 40×40, 20×20 grids). The p2 variant modifies the architecture so that the detector outputs from P2–P5 instead of P3–P5:
@@ -625,6 +622,8 @@ mpk remove -t <target_ip_address> -d devkit -a ai.sima.pipeline6
 * make_samples.py - make sample files for use with simaaisrc plugin
 * utils.py - utilities & helper functions
 * pipeline1 to pipeline6 - example pipelines
+* display_port9000.sh - host shell script for display compressed streams over UDP
+
 
 ## Acknowledgements
 
