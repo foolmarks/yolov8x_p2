@@ -26,6 +26,17 @@ The p2 variant is suited to high-resolution, cluttered scenes or large images wi
 
 The disadvantages are generally slower inference and higher memory usage. Also, the labelling of small objects can sometimes be error-prone, if the small-object annotations in the training dataset are noisy or inconsistent, the P2 head will overfit that noise. which leads to higher false positives on cluttered backgrounds unless you tune augmentations and losses carefully.
 
+## Working Environment ##
+
+This design was tested with Palette SDK 2.0.0 and the Sima Technologies SoM Devkit flashed with eLxr 2.0.0 firmware.
+
+An internet connection is needed to download files.
+
+Note: A patch (libsimaai_genboxdecode.so) must be copied into the /usr/lib/aarch64-linux-gnu/ folder on the SoM Devkit. This is only neccessary for the eLxr 2.0.0 firmware, the patch will be included in all newer firmware versions.
+
+```shell
+scp libsimaai_genboxdecode.so sima@<target_ip_address>:/usr/lib/aarch64-linux-gnu/.
+```
 
 
 ## Starting the Palette SDK docker container ##
@@ -607,6 +618,7 @@ mpk remove -t <target_ip_address> -d devkit -a ai.sima.pipeline6
 
 ## Files & Folders
 
+* libsimaai_genboxdecode.so - patch to be installed on SoM Devkit (only for 2.0.0 firmware)
 * rewrite_yolov8mp2_4_outs.py - graph surgery script
 * yolo_model.py - graph surgery utilities
 * run_onnx_single_output.py - executes and evaluates the single output floating-point ONNX model
@@ -620,7 +632,7 @@ mpk remove -t <target_ip_address> -d devkit -a ai.sima.pipeline6
 * make_samples.py - make sample files for use with simaaisrc plugin
 * utils.py - utilities & helper functions
 * pipeline1 to pipeline6 - example pipelines
-* display_port9000.sh - host shell script for display compressed streams over UDP
+* display_port9000.sh - host shell script for displaying compressed streams received over UDP
 
 
 ## Acknowledgements
