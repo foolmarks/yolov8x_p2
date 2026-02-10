@@ -641,3 +641,11 @@ mpk remove -t <target_ip_address> -d devkit -a ai.sima.pipeline6
 * Kristina Stevanovic of Sima Technologies for the graph surgery code.
 
 
+## License
+
+This repo uses files and work from Ultralytics and hence is covered by the AGPL3.0 license.
+
+
+
+
+
