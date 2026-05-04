@@ -321,7 +321,7 @@ The output in the console will be something like this:
 
 
 ```shell
-user@modelsdk88084ef7e7b:/home/docker/sima-cli$ python run_accelmode.py -hn 192.168.1.25
+user@modelsdk88084ef7e7b:/home/docker/sima-cli$ python run_accelmode.py -hn 192.168.1.20
 
 --------------------------------------------------
 Model SDK version 2.1.0
@@ -375,6 +375,19 @@ The evaluation of the compiled model generates images annotated with bounding bo
 
 <img src="./readme_images/accel_000000031534.jpg" alt="" style="height: 400px; width:500px;"/>
 
+
+
+## Quantization error check ##
+
+The run_modelsdk.py script will write quantization errors into the saved quantized model file - ./build/yolov8x-p2_opt_4o/yolov8x-p2_opt_4o.sima.json
+
+These errors can be inspected by opening ./build/yolov8x-p2_opt_4o/yolov8x-p2_opt_4o.sima.json with Netron:
+
+
+<img src="./readme_images/quant_error.png" alt="" style="height: 500px; width:500px;"/>
+
+
+The error_analysis.py script will extract the error values from ./build/yolov8x-p2_opt_4o/yolov8x-p2_opt_4o.sima.json and arite them into a text file (./build/yolov8x-p2_opt_4o/yolov8x-p2_opt_4o_layer_errors.txt) for easy reference.
 
 
 

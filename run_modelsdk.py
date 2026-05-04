@@ -261,12 +261,23 @@ def implement(args):
         log_level=logging.WARN,
     )
 
-    # optional save of quantized model - saved model can be opened with Netron
+
+    # run per-layer analysis
+    print(f"Running quantization error analysis with 10 image(s)")
+    quant_model.analyze_quantization_error(evaluation_data=calib_data[0:9],
+                                           error_metric='mae',
+                                           log_level=logging.INFO,
+                                           local_feed=True)
+
+
+    # save quantized model - saved model can be opened with Netron
     quant_model.save(model_name=output_model_name, output_directory=results_dir)
     print(
         f"Quantized model saved to {results_dir}/{output_model_name}.sima.json",
         flush=True,
     )
+
+
 
     """
     Execute, evaluate quantized model
