@@ -347,7 +347,7 @@ def implement(args):
     """
     print(f"Compiling with batch size set to {args.batch_size}", flush=True)
     quant_model.compile(
-        output_path=results_dir, batch_size=args.batch_size, log_level=logging.WARN
+        output_path=results_dir, batch_size=args.batch_size, log_level=logging.INFO
     )
 
     print(
