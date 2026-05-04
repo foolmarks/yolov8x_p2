@@ -8,9 +8,17 @@ test_images/
 project.mpk
 *.elf
 .TMP_DIR
+config.json
+
+# Environment files
+ultralytics
 
 
 # SDK containers
 .vdp-cli-*
 
 BACKUP_*
+
+# Vibe coding tools
+.codex
+

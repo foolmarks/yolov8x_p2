@@ -41,7 +41,7 @@ class MyPlugin(AggregatorTemplate):
     def __init__(self):
         self.out_size = int(640 * 640 * 3)  # outsize of plugin in bytes
         super(MyPlugin, self).__init__(
-            plugin_name=plugin_name, out_size=out_size, next_metaparser=False
+            plugin_name=plugin_name, out_size=out_size
         )
         self.output_index = 0
 

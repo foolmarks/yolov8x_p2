@@ -28,15 +28,10 @@ The disadvantages are generally slower inference and higher memory usage. Also, 
 
 ## Working Environment ##
 
-This design was tested with Palette SDK 2.0.0 and the Sima Technologies SoM Devkit flashed with eLxr 2.0.0 firmware.
+This design was tested with Palette SDK 2.1.0 and the Sima Technologies SoM Devkit flashed with eLxr 2.1.0 firmware.
 
 An internet connection is needed to download files.
 
-Note: A patch (libsimaai_genboxdecode.so) must be copied into the /usr/lib/aarch64-linux-gnu/ folder on the SoM Devkit. This is only neccessary for the eLxr 2.0.0 firmware, the patch will be included in all newer firmware versions.
-
-```shell
-scp libsimaai_genboxdecode.so sima@<target_ip_address>:/usr/lib/aarch64-linux-gnu/.
-```
 
 
 ## Starting the Palette SDK docker container ##
@@ -44,43 +39,43 @@ scp libsimaai_genboxdecode.so sima@<target_ip_address>:/usr/lib/aarch64-linux-gn
 The docker container can be started using `sima-cli sdk start` from the command line. Follow the instructions to select and start the eLxr, ModelSDK and MPK containers:
 
 ```shell
-user@ubmsh2:~/projects/yolov8x_p2$ sima-cli sdk start
+user@ubmsh:~/projects/yolov8x_p2$ sima-cli sdk start
 ✅ sima-cli is up-to-date
 🔧 Environment: host (linux)
 🖥️  Detected platform: Linux
 ✅ Docker daemon is running.
-╭───────────────── 📘 SiMa.ai SDK Image Selection ──────────────────╮
-│ How to use this menu:                                             │
-│                                                                   │
-│ • Use ↑/↓ arrows then Space to select one or more images.         │
-│ • Press Enter to confirm your selection.                          │
-│ • These are local Docker images found containing 'sima-docker'.   │
-│ • Containers based on these images will be started automatically. │
-│ • Press CTRL+C to cancel anytime.                                 │
-╰───────────────────────────────────────────────────────────────────╯
-Single SDK version detected: 2.0.0_Palette_SDK_master_B240
+╭───────────────────── 📘 SiMa.ai SDK Image Selection ──────────────────────╮
+│ How to use this menu:                                                     │
+│                                                                           │
+│ • Use ↑/↓ arrows then Space to select one or more images.                 │
+│ • Press Enter to confirm your selection.                                  │
+│ • These are local Docker SDK images detected across supported registries. │
+│ • Containers based on these images will be started automatically.         │
+│ • Press CTRL+C to cancel anytime.                                         │
+╰───────────────────────────────────────────────────────────────────────────╯
+? Multiple SDK versions detected — select one to start: 2.1.0_Palette_SDK_master_B279
+ℹ️  Showing images for version 2.1.0_Palette_SDK_master_B279
 📦 Select SDK images to start: (Space to toggle, Enter to confirm) 
-  ◉ ✅ Select All
-  ◉ vdp-cli-elxr-2.0.0_palette_sdk_master_b240
-  ◉ vdp-cli-modelsdk-2.0.0_palette_sdk_master_b240
-❯ ◉ vdp-cli-mpk_cli_toolset-2.0.0_palette_sdk_master_b240
-  ○ vdp-cli-yocto-2.0.0_palette_sdk_master_b240
-  ○ 🚫 Cancel
+  [ ] ✅ Select All
+  [x] vdp-cli-elxr-2.1.0_palette_sdk_master_b279
+  [x] vdp-cli-modelsdk-2.1.0_palette_sdk_master_b279
+❯ [x] vdp-cli-mpk_cli_toolset-2.1.0_palette_sdk_master_b279
+  [ ] vdp-cli-yocto-2.1.0_palette_sdk_master_b279
+  [ ] 🚫 Cancel
 ```
 
 When asked to enter the the workspace directory, just respond with `./`
 
 
-
-Access the ModelSDK container with `sima-cli sdk model`:
+When all 3 containers are ready (make take a a couple of minutes) access the ModelSDK container with `sima-cli sdk model`:
 
 ```shell
-user@ubmsh2:~/projects/yolov8x_p2$ sima-cli sdk model
+user@ubmsh:~/projects/yolov8x_p2$ sima-cli sdk model
 ✅ sima-cli is up-to-date
 🔧 Environment: host (linux)
 🖥️  Detected platform: Linux
 ✅ Docker daemon is running.
-▶ Executing command in container: vdp-cli-modelsdk-2.0.0_palette_sdk_master_b240
+▶ Executing command in container: vdp-cli-modelsdk-2.1.0_palette_sdk_master_b279
 =============================================================
  🚀 Welcome to the ModelSDK Container 
  
@@ -89,7 +84,15 @@ user@ubmsh2:~/projects/yolov8x_p2$ sima-cli sdk model
      /home/docker/sima-cli 
  to avoid losing files if the container is removed accidentally.
 =============================================================
-user@vdp-cli-modelsdk-2:/home/docker/sima-cli$ 
+=============================================================
+ 🚀 Welcome to the ModelSDK Container 
+ 
+ ⚠️  IMPORTANT NOTICE:
+ Please keep all your work in the mounted path:
+     /home/docker/sima-cli 
+ to avoid losing files if the container is removed accidentally.
+=============================================================
+ubuntu@vdp-cli-modelsdk-2:/home/docker/sima-cli$ 
 ```
 
 
@@ -110,11 +113,12 @@ The starting point will be a trained ONNX model - the model file (yolov8x-p2.onn
 If you use the PyTorch model, it will need to be converted to ONNX format:
 
 ```shell
+python3 -m venv ultralytics
+source ultralytics/bin/activate
 pip install ultralytics
 python export2onnx.py
+deactivate
 ```
-
-
 
 
 ## Execute The Original Floating-Point ONNX model ##
@@ -122,21 +126,21 @@ python export2onnx.py
 ONNXRuntime is included in the SDK docker, so we can run the floating-point model. This is useful to provide a baseline for comparing to the post-quantization and post-compile models. The run_onnx.py script includes pre- and postprocessing.
 
 > Note: The same pre-processing and post-processing is used at every step and will generally be similar to the pre/post-processing used during model training.
-> The pre-processing used in this Yolov8x_p2 example is resizing and padding to the model input size (usually 640,640) conversion from BGR to RGB format, pixel value normalization to the range 0->1s
+> The pre-processing used in this Yolov8x_p2 example is resizing and padding to the model input size (640 x 640), conversion from BGR to RGB format, pixel value normalization to the range 0->1
 
 
 ```shell
-python run_onnx_single_out.py 
+python run_onnx.py 
 ```
 
 
 The expected console output is like this:
 
 ```shell
-user@vdp-cli-modelsdk-2:/home/docker/sima-cli$ python run_onnx_single_out.py 
+user@vdp-cli-modelsdk-2:/home/docker/sima-cli$ python run_onnx.py 
 
 --------------------------------------------------
-3.10.12 (main, Nov  4 2025, 08:48:33) [GCC 11.4.0]
+3.12.3 (main, Mar  3 2026, 12:15:18) [GCC 13.3.0]
 --------------------------------------------------
 Found 10 image(s) in './test_images'
 Output images will be written to './build/onnx_pred'
@@ -175,7 +179,7 @@ Processing image: 000000581062.jpg
 Images annotated with bounding boxes are written into the ./build/onnx_pred folder.
 
 
-<img src="./readme_images/onnx_1_000000022589.jpg" alt="" style="height: 400px; width:500px;"/>
+<img src="./readme_images/onnx_pred_000000031534.jpg" alt="" style="height: 400px; width:500px;"/>
 
 
 
@@ -206,7 +210,7 @@ python run_onnx_4_outs.py
 Images annotated with bounding boxes are written into the ./build/onnx_4_pred folder.
 
 
-<img src="./readme_images/onnx_4_000000022589.jpg" alt="" style="height: 400px; width:500px;"/>
+<img src="./readme_images/onnx4_pred_000000031534.jpg" alt="" style="height: 400px; width:500px;"/>
 
 
 
@@ -236,8 +240,8 @@ The expected console output is like this:
 user@modelsdk:/home/docker/sima-cli$ python run_modelsdk.py -e
 
 --------------------------------------------------
-Model SDK version 2.0.0
-3.10.12 (main, Nov  4 2025, 08:48:33) [GCC 11.4.0]
+Model SDK version 2.1.0
+3.12.3 (main, Mar  3 2026, 12:15:18) [GCC 13.3.0]
 --------------------------------------------------
 Results will be written to /home/docker/sima-cli/build/yolov8x-p2_opt_4o
 --------------------------------------------------
@@ -295,7 +299,7 @@ Wrote compiled model to /home/docker/sima-cli/build/yolov8x-p2_opt_4o/yolov8x-p2
 The evaluation of the quantized model generates images annotated with bounding boxes and are written into the ./build/quant_pred folder.
 
 
-<img src="./readme_images/quant_pred_000000022589.jpg" alt="" style="height: 400px; width:500px;"/>
+<img src="./readme_images/quant_000000031534.jpg" alt="" style="height: 400px; width:500px;"/>
 
 
 
@@ -320,8 +324,8 @@ The output in the console will be something like this:
 user@modelsdk88084ef7e7b:/home/docker/sima-cli$ python run_accelmode.py -hn 192.168.1.25
 
 --------------------------------------------------
-Model SDK version 2.0.0
-3.10.12 (main, Nov  4 2025, 08:48:33) [GCC 11.4.0]
+Model SDK version 2.1.0
+3.12.3 (main, Mar  3 2026, 12:15:18) [GCC 13.3.0]
 --------------------------------------------------
 Annotated images will be written to /home/docker/sima-cli/build/accel_pred
 Loading yolov8x-p2_opt_4o quantized model from build/yolov8x-p2_opt_4o
@@ -369,7 +373,7 @@ The evaluation of the compiled model generates images annotated with bounding bo
 
 
 
-<img src="./readme_images/accel_pred_000000022589.jpg" alt="" style="height: 400px; width:500px;"/>
+<img src="./readme_images/accel_000000031534.jpg" alt="" style="height: 400px; width:500px;"/>
 
 
 
@@ -398,16 +402,16 @@ python ./get_fps/network_eval/network_eval.py \
 Running model in MLA-only mode
 Copying the model files to DevKit
 sima@192.168.1.21's password: 
-FPS = 108
-FPS = 109
-FPS = 109
-FPS = 109
-FPS = 109
-FPS = 109
-FPS = 109
-FPS = 109
-FPS = 109
-FPS = 109
+FPS = 110
+FPS = 110
+FPS = 110
+FPS = 110
+FPS = 111
+FPS = 111
+FPS = 111
+FPS = 111
+FPS = 111
+FPS = 111
 Ran 100 frame(s)
 ```
 
@@ -540,7 +544,7 @@ mpk deploy -f ./yolov8x-p2_opt_4o_mpk_simaaisrc/project.mpk -d devkit -t <target
 The pipeline can be killed and removed from the target board like this:
 
 ```shell
-mpk remove -t <target_ip_address> -d devkit -a ai.sima.yolov8x-p2_opt_4o_mpk_simaaisrc
+mpk remove -d devkit -a ai.sima.yolov8x-p2_opt_4o_mpk_simaaisrc -t <target_ip_address> 
 ```
 
 
