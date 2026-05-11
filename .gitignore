@@ -8,6 +8,7 @@ test_images/
 project.mpk
 *.elf
 .TMP_DIR
+config.json
 
 
 # SDK containers
