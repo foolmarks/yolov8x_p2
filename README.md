@@ -105,7 +105,7 @@ unzip test_images.zip
 
 ## Converting the PyTorch model to ONNX ##
 
-The starting point will be a trained ONNX model - the model file (yolov8x-p2.onnx) is provided from [Google Drive](https://drive.google.com/file/d/1rFa923GeVE91kRmxRZpWEzurWC2V5COV/view?usp=sharing) or the trained PyTorch model (model.pt) can be downloaded from its original [source repository](https://huggingface.co/davsolai/yolov8x-p2-coco).
+The starting point will be a trained ONNX model - the model file (yolov8x-p2.onnx) is provided from [Google Drive](https://drive.google.com/file/d/1scme3O39e4rkGIg8TSyCcnROeMgkxebM/view?usp=drive_link) or the trained PyTorch model (model.pt) can be downloaded from its original [source repository](https://huggingface.co/davsolai/yolov8x-p2-coco).
 
 If you use the PyTorch model, it will need to be converted to ONNX format:
 

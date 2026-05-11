@@ -14,3 +14,5 @@ project.mpk
 .vdp-cli-*
 
 BACKUP_*
+.ghcr.io-sima-neat-sdk-latest/
+playbooks/
