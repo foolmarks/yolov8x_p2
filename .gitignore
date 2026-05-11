@@ -9,6 +9,8 @@ project.mpk
 *.elf
 .TMP_DIR
 config.json
+neat/cpp/results
+neat/py/results
 
 
 # SDK containers
