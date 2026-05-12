@@ -1,17 +1,24 @@
 # NEAT C++ application task specification
 Prompt for codex/claude.
 
+
 ## working envornment
 * ghcr.io-sima-neat-sdk-latest docker container
 
 
 ## task
-Create a C++ NEAT application named main_sync.cpp that does the following:
+Create a C++ NEAT application named main_async.cpp that does the following:
 
-* use synchronous execution
-* read all images from 'test_images' folder - refer to get_image_paths() from utils.py as a guide
-* push the images into the pipeline
-* pull the output when ready
+* use asynchronous execution
+* read all images from 'test_images' folder - use get_image_paths() from utils.py as a guide.
+* push the images into the pipeline, pull the output when ready
+    * push operations and pull operations should be seperate.
+    * use run.try_push() to push without blocking.
+    * check run.can_push() and run.running() after building the pipeline.
+    * do not use push_and_pull(), model.run(), session.run(), or other synchronous convenience operations.
+    * do not call run.close_input() immediately after pushing the last image; drain the expected outputs first, then close the run.
+    * bound the number of in-flight images so outputs can be drained while new inputs are admitted.
+    * if try_push() returns false, pull pending output and retry later instead of blocking the producer.
 * run post-processing and image write (see post-processing below)
 
 

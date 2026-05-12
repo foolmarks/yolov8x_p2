@@ -1,8 +1,11 @@
 # NEAT Python application task specification
-Prompt for codex/claude.
+
+
+## working envornment
+* ghcr.io-sima-neat-sdk-latest docker container
 
 ## task
-Create a Python NEAT application that does the following:
+Create a Python NEAT application named run_neat_sync.py that does the following:
 
 * use synchronous execution
 * read all images from 'test_images' folder - use get_image_paths() from utils.py
@@ -35,6 +38,7 @@ Create a Python NEAT application that does the following:
 * draw detections on 640 x 640 image that was input to model
     * refer to draw_detections() function in utils.py as a guide.
 * Write images with overlays into a folder named 'results' - refer to prepare_output_dir() from utils.py as a guide.
+    * Delete and recreate 'results' if it already exists - refer to prepare_output_dir() in utils.py as a guide.
 
 
 
@@ -49,6 +53,7 @@ Create a Python NEAT application that does the following:
 
 ## paths
 * target folder: /home/mark/projects/tattile/yolov8x_p2/neat/py
+    * make the target folder if it does not exist
 * results folder: /home/mark/projects/tattile/yolov8x_p2/neat/py/results
 * compiled model: /home/mark/projects/tattile/yolov8x_p2/build/yolov8x-p2_opt_4o/yolov8x-p2_opt_4o_mpk.tar.gz
 * images: /home/mark/projects/tattile/yolov8x_p2/test_images
